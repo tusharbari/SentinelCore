@@ -1,8 +1,11 @@
 package backend.service;
 
+import backend.dto.JwtResponse;
 import backend.entity.User;
 import backend.repository.UserRepository;
+import backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,18 +14,31 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    public String login(String email, String password) {
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-        User user = userRepository.findByEmail(email).orElse(null);
+    @Autowired
+    private JwtUtil jwtUtil;
 
-        if (user == null) {
-            return "User Not Found";
+    public JwtResponse login(String email, String password) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid Password");
         }
 
-        if (!user.getPassword().equals(password)) {
-            return "Invalid Password";
-        }
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().getName()
+        );
 
-        return "Login Successful";
+        return new JwtResponse(
+                token,
+                user.getEmail(),
+                user.getRole().getName(),
+                "Login Successful"
+        );
     }
 }

@@ -12,6 +12,10 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  jwt:
+    secret: 1234567890123456789012345678901234567890123456789012345678901234
+    expiration: 86400000
+
 #  data:
 #    mongodb:
 #      uri: mongodb://localhost:27017/sentinel_logs

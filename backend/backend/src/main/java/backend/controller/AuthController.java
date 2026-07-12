@@ -24,6 +24,5 @@ public class AuthController {
                 request.getEmail(),
                 request.getPassword()
         );
-
     }
 }

@@ -1,6 +1,5 @@
 package backend.config;
 
-import org.springframework.web.cors.CorsConfigurationSource;
 import backend.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +19,7 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
     
-    @Autowired
-    private CorsConfigurationSource corsConfigurationSource;
+
 
     @Bean
     public AuthenticationManager authenticationManager(

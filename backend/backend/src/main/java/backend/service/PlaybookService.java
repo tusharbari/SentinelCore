@@ -10,9 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,7 +28,6 @@ public class PlaybookService {
         private final PlaybookAuditLogRepository playbookAuditLogRepository;
         private final PlaybookNotificationRepository playbookNotificationRepository;
         private final IncidentRepository incidentRepository;
-        private final UserRepository userRepository;
 
         private final ExecutorService executorService = Executors.newCachedThreadPool();
 

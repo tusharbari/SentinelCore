@@ -39,6 +39,7 @@ function Login() {
       }
 
       sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("refreshToken", response.data.refreshToken);
       sessionStorage.setItem("email", response.data.email);
       sessionStorage.setItem(
         "role",

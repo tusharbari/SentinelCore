@@ -1,6 +1,7 @@
 import { FaBell, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getCurrentRole } from "../services/auth";
+import api from "../services/api";
 
 function Navbar() {
 
@@ -9,15 +10,23 @@ function Navbar() {
     const email = sessionStorage.getItem("email");
     const role = getCurrentRole();
 
-    const logout = () => {
+    const logout = async () => {
+        const refreshToken = sessionStorage.getItem("refreshToken");
 
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("email");
-        sessionStorage.removeItem("role");
-        sessionStorage.removeItem("isLoggedIn");
-
-        navigate("/");
-
+        try {
+            if (refreshToken) {
+                await api.post("/auth/logout", { refreshToken });
+            }
+        } catch (error) {
+            console.error("Logout request failed", error);
+        } finally {
+            sessionStorage.removeItem("token");
+            sessionStorage.removeItem("refreshToken");
+            sessionStorage.removeItem("email");
+            sessionStorage.removeItem("role");
+            sessionStorage.removeItem("isLoggedIn");
+            navigate("/");
+        }
     };
 
     return (

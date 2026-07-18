@@ -16,6 +16,9 @@ import AddUser from "../pages/AddUser";
 import EditUser from "../pages/EditUser";
 import Reports from "../pages/Reports";
 import VulnerabilityDashboard from "../pages/VulnerabilityDashboard";
+import IncidentList from "../pages/IncidentList";
+import PlaybookList from "../pages/PlaybookList";
+import PlaybookExecutionDetail from "../pages/PlaybookExecutionDetail";
 import ProtectedRoute from "./ProtectedRoute";
 
 const writeRoles = ["ADMIN", "ANALYST"];

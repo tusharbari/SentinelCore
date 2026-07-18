@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelCore — 45-Day Build Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0B0E14;
+    --surface: #131720;
+    --surface-raised: #1A1F2E;
+    --border: #252B3B;
+    --text: #C8CDD8;
+    --text-muted: #6B7280;
+    --heading: #E8ECF4;
+    --accent: #3B82F6;
+    --accent-dim: #1E3A5F;
+    --green: #22C55E;
+    --green-dim: #14532D;
+    --amber: #F59E0B;
+    --amber-dim: #78350F;
+    --red: #EF4444;
+    --red-dim: #7F1D1D;
+    --purple: #A855F7;
+    --purple-dim: #3B0764;
+    --cyan: #06B6D4;
+    --cyan-dim: #083344;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- HERO ---- */
+  header {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    color: var(--heading);
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  /* ---- TECH STACK BAR ---- */
+  .tech-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 32px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tech-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .tech-tag b { color: var(--heading); font-weight: 600; }
+
+  /* ---- SECTION TITLES ---- */
+  .section-title {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 48px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  /* ---- MODULE GRID ---- */
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-top: none;
+  }
+  .module {
+    background: var(--surface);
+    padding: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .module-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .module h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--heading);
+    margin-bottom: 6px;
+  }
+  .module p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .c-blue .module-num   { background: var(--accent-dim); color: var(--accent); }
+  .c-green .module-num  { background: var(--green-dim);  color: var(--green); }
+  .c-amber .module-num  { background: var(--amber-dim);  color: var(--amber); }
+  .c-red .module-num    { background: var(--red-dim);    color: var(--red); }
+  .c-purple .module-num { background: var(--purple-dim); color: var(--purple); }
+  .c-cyan .module-num   { background: var(--cyan-dim);   color: var(--cyan); }
+
+  /* ---- TIMELINE ---- */
+  .timeline { padding-bottom: 80px; }
+  .sprint {
+    border: 1px solid var(--border);
+    border-top: none;
+    background: var(--surface);
+  }
+  .sprint:first-of-type { border-top: 1px solid var(--border); }
+  .sprint-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .sprint-header:hover { background: var(--surface-raised); }
+  .sprint-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .sprint-badge.s1 { background: var(--accent-dim); color: var(--accent); }
+  .sprint-badge.s2 { background: var(--green-dim); color: var(--green); }
+  .sprint-badge.s3 { background: var(--amber-dim); color: var(--amber); }
+  .sprint-badge.s4 { background: var(--purple-dim); color: var(--purple); }
+  .sprint-badge.s5 { background: var(--red-dim); color: var(--red); }
+  .sprint-badge.s6 { background: var(--cyan-dim); color: var(--cyan); }
+
+  .sprint-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--heading);
+    flex: 1;
+  }
+  .sprint-days {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .sprint-arrow {
+    color: var(--text-muted);
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+  .sprint.open .sprint-arrow { transform: rotate(90deg); }
+
+  .sprint-body {
+    display: none;
+    padding: 0 24px 24px 24px;
+  }
+  .sprint.open .sprint-body { display: block; }
+
+  .task-group { margin-bottom: 20px; }
+  .task-group:last-child { margin-bottom: 0; }
+  .task-group-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  .task:first-child { border-top: none; }
+  .task .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+  .task .label-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .be { background: var(--accent-dim); color: var(--accent); }
+  .fe { background: var(--green-dim); color: var(--green); }
+  .db { background: var(--amber-dim); color: var(--amber); }
+  .fs { background: var(--purple-dim); color: var(--purple); }
+  .ts { background: var(--red-dim); color: var(--red); }
+
+  .deliverables-box {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-top: 16px;
+  }
+  .deliverables-box strong {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .deliverables-box ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .deliverables-box li {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  /* ---- LEGEND ---- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 0;
+    margin-bottom: 8px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+  }
+  .legend-item .swatch {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ---- FOOTER ---- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 700px) {
+    .modules { grid-template-columns: 1fr; }
+    header { padding: 48px 0 40px; }
+    .sprint-header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- HERO -->
+<header>
+  <div class="eyebrow">Final Year Project Blueprint</div>
+  <h1>Sentinel<span>Core</span></h1>
+  <p class="subtitle">Enterprise Security Operations Platform — a full-stack capstone covering threat detection, incident response, vulnerability management, and compliance automation.</p>
+</header>
+
+<!-- TECH STACK -->
+<div class="tech-bar">
+  <div class="tech-tag"><b>Backend</b> &nbsp;Java 17 + Spring Boot 3</div>
+  <div class="tech-tag"><b>Frontend</b> &nbsp;React 18 + Tailwind CSS</div>
+  <div class="tech-tag"><b>Database</b> &nbsp;PostgreSQL + MongoDB</div>
+  <div class="tech-tag"><b>Auth</b> &nbsp;Spring Security + JWT</div>
+  <div class="tech-tag"><b>Realtime</b> &nbsp;WebSocket (STOMP)</div>
+  <div class="tech-tag"><b>Queue</b> &nbsp;Apache Kafka / RabbitMQ</div>
+  <div class="tech-tag"><b>Cache</b> &nbsp;Redis</div>
+  <div class="tech-tag"><b>Build</b> &nbsp;Maven · Vite · Docker</div>
+</div>
+
+<!-- MODULES -->
+<h2 class="section-title">Modules — 18 Core Components</h2>
+<div class="modules">
+
+  <div class="module c-blue">
+    <div class="module-num">01</div>
+    <div>
+      <h3>Auth & RBAC</h3>
+      <p>JWT-based login with role-based access control — Admin, Analyst, Viewer — plus MFA toggle and session management for secure multi-tenant access.</p>
+    </div>
+  </div>
+
+  <div class="module c-blue">
+    <div class="module-num">02</div>
+    <div>
+      <h3>User & Team Management</h3>
+      <p>CRUD for security team members with department assignment, skill tagging, and shift scheduling so incidents route to the right on-call analyst.</p>
+    </div>
+  </div>
+
+  <div class="module c-green">
+    <div class="module-num">03</div>
+    <div>
+      <h3>Security Dashboard</h3>
+      <p>Real-time overview with threat-level gauges, open-incident counters, MTTR trends, and a live event feed powered by WebSocket push.</p>
+    </div>
+  </div>
+
+  <div class="module c-green">
+    <div class="module-num">04</div>
+    <div>
+      <h3>Threat Intelligence Feed</h3>
+      <p>Ingests IOC data (IPs, hashes, domains) from external sources and internal logs, normalizes it into a searchable threat library with severity scores.</p>
+    </div>
+  </div>
+
+  <div class="module c-amber">
+    <div class="module-num">05</div>
+    <div>
+      <h3>Incident Management</h3>
+      <p>Create, classify (P1–P4), assign, escalate, and resolve security incidents through a Kanban-style workflow with SLA countdown timers.</p>
+    </div>
+  </div>
+
+  <div class="module c-amber">
+    <div class="module-num">06</div>
+    <div>
+      <h3>Alert Engine</h3>
+      <p>Rule-based alerting that correlates log events against detection rules, deduplicates noise, and pushes prioritized alerts to the analyst queue.</p>
+    </div>
+  </div>
+
+  <div class="module c-red">
+    <div class="module-num">07</div>
+    <div>
+      <h3>Vulnerability Scanner</h3>
+      <p>Scans registered assets for known CVEs using a local vulnerability database, scores findings with CVSS, and links them to remediation playbooks.</p>
+    </div>
+  </div>
+
+  <div class="module c-red">
+    <div class="module-num">08</div>
+    <div>
+      <h3>Asset Inventory</h3>
+      <p>Central registry of servers, endpoints, and network devices with OS, owner, criticality tier, and patch status — the backbone for risk scoring.</p>
+    </div>
+  </div>
+
+  <div class="module c-purple">
+    <div class="module-num">09</div>
+    <div>
+      <h3>Log Management (SIEM Lite)</h3>
+      <p>Collects and indexes structured logs (syslog, app logs) into MongoDB, with full-text search, time-range filters, and saved-query support.</p>
+    </div>
+  </div>
+
+  <div class="module c-purple">
+    <div class="module-num">10</div>
+    <div>
+      <h3>Playbook Automation</h3>
+      <p>Pre-defined and custom response playbooks (e.g., "isolate host → block IP → notify") that analysts can trigger manually or attach to alert rules.</p>
+    </div>
+  </div>
+
+  <div class="module c-cyan">
+    <div class="module-num">11</div>
+    <div>
+      <h3>Compliance Manager</h3>
+      <p>Maps security controls to frameworks (ISO 27001, NIST, PCI-DSS), tracks evidence collection status, and generates gap-analysis reports.</p>
+    </div>
+  </div>
+
+  <div class="module c-cyan">
+    <div class="module-num">12</div>
+    <div>
+      <h3>Audit Trail</h3>
+      <p>Immutable log of every user action — logins, config changes, incident updates — stored in an append-only collection for forensic accountability.</p>
+    </div>
+  </div>
+
+  <div class="module c-blue">
+    <div class="module-num">13</div>
+    <div>
+      <h3>Report Generator</h3>
+      <p>On-demand and scheduled PDF/CSV reports — executive summaries, incident post-mortems, vulnerability aging, compliance posture — with chart embeds.</p>
+    </div>
+  </div>
+
+  <div class="module c-green">
+    <div class="module-num">14</div>
+    <div>
+      <h3>Notification Service</h3>
+      <p>Multi-channel dispatch (email, in-app toast, webhook) with per-user preference settings, throttle rules, and escalation chains for critical alerts.</p>
+    </div>
+  </div>
+
+  <div class="module c-amber">
+    <div class="module-num">15</div>
+    <div>
+      <h3>Risk Scoring Engine</h3>
+      <p>Aggregates vulnerability counts, open incidents, asset criticality, and compliance gaps into a per-asset and org-wide risk score displayed on dashboards.</p>
+    </div>
+  </div>
+
+  <div class="module c-red">
+    <div class="module-num">16</div>
+    <div>
+      <h3>Knowledge Base</h3>
+      <p>Internal wiki for runbooks, post-incident reviews, and detection-rule documentation — searchable, version-tracked, and linked from incidents.</p>
+    </div>
+  </div>
+
+  <div class="module c-purple">
+    <div class="module-num">17</div>
+    <div>
+      <h3>Integration Hub</h3>
+      <p>REST API gateway that exposes SentinelCore data to external tools (Slack, Jira, PagerDuty) and accepts inbound webhooks for event ingestion.</p>
+    </div>
+  </div>
+
+  <div class="module c-cyan">
+    <div class="module-num">18</div>
+    <div>
+      <h3>Settings & Configuration</h3>
+      <p>Global knobs — data-retention policies, alert thresholds, SMTP/webhook config, UI theme — with an admin-only config panel and env-variable overrides.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- TIMELINE -->
+<h2 class="section-title">45-Day Sprint Plan — 6 Iterations</h2>
+
+<div class="legend">
+  <div class="legend-item"><div class="swatch be"></div> Backend</div>
+  <div class="legend-item"><div class="swatch fe"></div> Frontend</div>
+  <div class="legend-item"><div class="swatch db"></div> Database</div>
+  <div class="legend-item"><div class="swatch fs"></div> Full-Stack</div>
+  <div class="legend-item"><div class="swatch ts"></div> Testing</div>
+</div>
+
+<div class="timeline">
+
+<!-- SPRINT 1 -->
+<div class="sprint open">
+  <div class="sprint-header" onclick="this.parentElement.classList.toggle('open')">
+    <div class="sprint-badge s1">SPRINT 1</div>
+    <div class="sprint-title">Foundation & Auth</div>
+    <div class="sprint-days">Day 1 – 7</div>
+    <div class="sprint-arrow">▶</div>
+  </div>
+  <div class="sprint-body">
+    <div class="task-group">
+      <div class="task-group-label">Setup & Infrastructure</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Initialize Spring Boot project, configure Maven multi-module (api, service, domain) <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Scaffold React app with Vite, install Tailwind, set up routing (React Router v6) <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--amber)"></div> Design PostgreSQL schema — users, roles, permissions tables; MongoDB connection for logs <span class="label-tag db">Database</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Docker Compose for Postgres, MongoDB, Redis, and Kafka (local dev environment) <span class="label-tag be">Backend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Auth & RBAC (Modules 01–02)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Spring Security config — JWT generation, validation, refresh-token rotation <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> RBAC middleware — role hierarchy (ADMIN > ANALYST > VIEWER), method-level @PreAuthorize <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Login / register pages, protected route wrapper, auth context with token persistence <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> User management CRUD UI — invite, deactivate, assign role, team tagging <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> User & Team REST endpoints — /api/users, /api/teams with pagination + search <span class="label-tag be">Backend</span></div>
+    </div>
+    <div class="deliverables-box">
+      <strong>Sprint 1 Deliverables</strong>
+      <ul>
+        <li>Working login/logout flow</li>
+        <li>Role-gated API & UI</li>
+        <li>User CRUD</li>
+        <li>Docker dev env</li>
+        <li>DB schema v1</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SPRINT 2 -->
+<div class="sprint">
+  <div class="sprint-header" onclick="this.parentElement.classList.toggle('open')">
+    <div class="sprint-badge s2">SPRINT 2</div>
+    <div class="sprint-title">Dashboard, Assets & Logs</div>
+    <div class="sprint-days">Day 8 – 15</div>
+    <div class="sprint-arrow">▶</div>
+  </div>
+  <div class="sprint-body">
+    <div class="task-group">
+      <div class="task-group-label">Security Dashboard (Module 03)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Aggregation APIs — incident counts, severity distribution, MTTR, trend endpoints <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Dashboard layout — stat cards, Recharts line/bar/pie charts, responsive grid <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--purple)"></div> WebSocket setup (STOMP over SockJS) — live event feed + real-time counter push <span class="label-tag fs">Full-Stack</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Asset Inventory (Module 08)</div>
+      <div class="task"><div class="dot" style="background:var(--amber)"></div> Asset table schema — hostname, IP, OS, owner, criticality, patch_status, last_seen <span class="label-tag db">Database</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Asset CRUD API with CSV bulk-import endpoint <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Asset registry UI — data table with sort, filter, inline edit, CSV upload <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Log Management — SIEM Lite (Module 09)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Log ingestion API — accepts syslog/JSON, normalizes, stores in MongoDB time-series <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Log explorer UI — full-text search bar, time-range picker, severity chips, saved queries <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--amber)"></div> MongoDB text index + TTL index for auto-expiry on old logs <span class="label-tag db">Database</span></div>
+    </div>
+    <div class="deliverables-box">
+      <strong>Sprint 2 Deliverables</strong>
+      <ul>
+        <li>Live dashboard with charts</li>
+        <li>Asset inventory + CSV import</li>
+        <li>Log search & ingestion</li>
+        <li>WebSocket event feed</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SPRINT 3 -->
+<div class="sprint">
+  <div class="sprint-header" onclick="this.parentElement.classList.toggle('open')">
+    <div class="sprint-badge s3">SPRINT 3</div>
+    <div class="sprint-title">Incidents, Alerts & Threats</div>
+    <div class="sprint-days">Day 16 – 23</div>
+    <div class="sprint-arrow">▶</div>
+  </div>
+  <div class="sprint-body">
+    <div class="task-group">
+      <div class="task-group-label">Incident Management (Module 05)</div>
+      <div class="task"><div class="dot" style="background:var(--amber)"></div> Incident schema — title, severity (P1-P4), status (Open/Triaged/In Progress/Resolved), assignee, SLA <span class="label-tag db">Database</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Incident lifecycle API — create, assign, escalate, add-comment, resolve, close <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Kanban board UI (drag-and-drop columns), detail drawer with timeline + comments <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> SLA timer service — background scheduler checks deadlines, triggers escalation <span class="label-tag be">Backend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Alert Engine (Module 06)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Detection rule CRUD — field-condition-action definitions stored in Postgres <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Event correlator — Kafka consumer evaluates incoming logs against active rules, deduplicates <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Alert queue UI — sortable list with acknowledge, dismiss, create-incident actions <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Threat Intelligence (Module 04)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> IOC ingest API — bulk upload of IPs, domains, file hashes with source/confidence tagging <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Threat library UI — searchable table with severity badges, linked incidents column <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="deliverables-box">
+      <strong>Sprint 3 Deliverables</strong>
+      <ul>
+        <li>Incident Kanban + lifecycle</li>
+        <li>Rule-based alert engine</li>
+        <li>Threat IOC library</li>
+        <li>SLA escalation</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SPRINT 4 -->
+<div class="sprint">
+  <div class="sprint-header" onclick="this.parentElement.classList.toggle('open')">
+    <div class="sprint-badge s4">SPRINT 4</div>
+    <div class="sprint-title">Vuln Scanner, Playbooks & Risk</div>
+    <div class="sprint-days">Day 24 – 31</div>
+    <div class="sprint-arrow">▶</div>
+  </div>
+  <div class="sprint-body">
+    <div class="task-group">
+      <div class="task-group-label">Vulnerability Scanner (Module 07)</div>
+      <div class="task"><div class="dot" style="background:var(--amber)"></div> CVE reference table — import from NVD JSON feeds, store CVE-ID, CVSS score, description <span class="label-tag db">Database</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Scan engine — match asset OS/software against CVE DB, generate findings with CVSS <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Vulnerability dashboard — findings list, severity heatmap per asset, remediation links <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Playbook Automation (Module 10)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Playbook model — ordered steps (isolate, block, notify, ticket), trigger conditions <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Visual playbook builder — drag-and-drop step editor, link-to-alert-rule selector <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Execution engine — runs playbook steps sequentially, logs each action to audit trail <span class="label-tag be">Backend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Risk Scoring (Module 15)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Risk calculator service — weighted formula across vuln count, open incidents, asset tier <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Risk score cards on dashboard + per-asset risk badge in inventory table <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="deliverables-box">
+      <strong>Sprint 4 Deliverables</strong>
+      <ul>
+        <li>CVE-based vuln scanning</li>
+        <li>Playbook builder + execution</li>
+        <li>Org-wide risk score</li>
+        <li>CVSS severity heatmap</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SPRINT 5 -->
+<div class="sprint">
+  <div class="sprint-header" onclick="this.parentElement.classList.toggle('open')">
+    <div class="sprint-badge s5">SPRINT 5</div>
+    <div class="sprint-title">Compliance, Reports & Knowledge Base</div>
+    <div class="sprint-days">Day 32 – 39</div>
+    <div class="sprint-arrow">▶</div>
+  </div>
+  <div class="sprint-body">
+    <div class="task-group">
+      <div class="task-group-label">Compliance Manager (Module 11)</div>
+      <div class="task"><div class="dot" style="background:var(--amber)"></div> Control-framework mapping table — control_id, framework (ISO/NIST/PCI), status, evidence_url <span class="label-tag db">Database</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Compliance API — list controls per framework, update evidence status, gap-analysis endpoint <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Compliance tracker UI — framework selector, progress bars per domain, evidence upload <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Reports & Audit (Modules 12–13)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Report generation service — JasperReports or iText for PDF; CSV export via streaming <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Report builder UI — select type, date range, filters; download/schedule toggles <span class="label-tag fe">Frontend</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Audit trail API — append-only insert, query by user/action/entity, export for forensics <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Audit log viewer — filterable table with user, timestamp, action, before/after diff <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Knowledge Base & Notifications (Modules 14, 16)</div>
+      <div class="task"><div class="dot" style="background:var(--purple)"></div> Knowledge base — Markdown editor, version history, tagging, full-text search (MongoDB) <span class="label-tag fs">Full-Stack</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Notification service — email (JavaMailSender), in-app (WebSocket), webhook dispatcher <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Notification preferences UI — per-channel toggles, escalation chain config <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="deliverables-box">
+      <strong>Sprint 5 Deliverables</strong>
+      <ul>
+        <li>Compliance tracker (ISO/NIST)</li>
+        <li>PDF/CSV report generation</li>
+        <li>Immutable audit log</li>
+        <li>Knowledge base wiki</li>
+        <li>Multi-channel notifications</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SPRINT 6 -->
+<div class="sprint">
+  <div class="sprint-header" onclick="this.parentElement.classList.toggle('open')">
+    <div class="sprint-badge s6">SPRINT 6</div>
+    <div class="sprint-title">Integration, Polish & Deployment</div>
+    <div class="sprint-days">Day 40 – 45</div>
+    <div class="sprint-arrow">▶</div>
+  </div>
+  <div class="sprint-body">
+    <div class="task-group">
+      <div class="task-group-label">Integration Hub & Settings (Modules 17–18)</div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> REST API gateway — versioned public API (/api/v1/*) with API-key auth for external tools <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--accent)"></div> Inbound webhook receiver — accepts events from Jira/Slack/PagerDuty, maps to internal format <span class="label-tag be">Backend</span></div>
+      <div class="task"><div class="dot" style="background:var(--green)"></div> Settings panel — SMTP config, retention policies, threshold tuning, UI theme toggle <span class="label-tag fe">Frontend</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Testing & QA</div>
+      <div class="task"><div class="dot" style="background:var(--red)"></div> Unit tests — JUnit 5 for services, Mockito for repository layer (target: 70%+ coverage) <span class="label-tag ts">Testing</span></div>
+      <div class="task"><div class="dot" style="background:var(--red)"></div> Integration tests — TestContainers for Postgres/Mongo, MockMvc for controller layer <span class="label-tag ts">Testing</span></div>
+      <div class="task"><div class="dot" style="background:var(--red)"></div> Frontend tests — React Testing Library for critical flows (login, incident create, search) <span class="label-tag ts">Testing</span></div>
+      <div class="task"><div class="dot" style="background:var(--red)"></div> E2E smoke test — Playwright script covering login → dashboard → create incident → resolve <span class="label-tag ts">Testing</span></div>
+    </div>
+    <div class="task-group">
+      <div class="task-group-label">Deployment & Documentation</div>
+      <div class="task"><div class="dot" style="background:var(--purple)"></div> Dockerize full stack — multi-stage Dockerfile for Spring Boot, Nginx for React static build <span class="label-tag fs">Full-Stack</span></div>
+      <div class="task"><div class="dot" style="background:var(--purple)"></div> Docker Compose production profile — env vars, volumes, health checks, restart policies <span class="label-tag fs">Full-Stack</span></div>
+      <div class="task"><div class="dot" style="background:var(--purple)"></div> API documentation — Swagger/OpenAPI auto-generated from annotations <span class="label-tag fs">Full-Stack</span></div>
+      <div class="task"><div class="dot" style="background:var(--purple)"></div> README, ER diagram, architecture diagram, demo seed data script <span class="label-tag fs">Full-Stack</span></div>
+    </div>
+    <div class="deliverables-box">
+      <strong>Sprint 6 Deliverables</strong>
+      <ul>
+        <li>Public API + webhooks</li>
+        <li>70%+ test coverage</li>
+        <li>Docker production build</li>
+        <li>Swagger docs</li>
+        <li>Project documentation</li>
+        <li>Demo-ready seed data</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- timeline -->
+
+</div><!-- container -->
+
+<footer>
+  <div class="container">SentinelCore — Final Year Project Plan &middot; Java + React + PostgreSQL + MongoDB &middot; 45 Days &middot; 18 Modules &middot; 6 Sprints</div>
+</footer>
+
+</body>
+</html>

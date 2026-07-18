@@ -15,7 +15,7 @@ public class BackendApplication {
 	}
 
 	@Bean
-	CommandLineRunner ensureDefaultRoles(RoleRepository roleRepository) {
+	CommandLineRunner ensureDefaultRoles(RoleRepository roleRepository, backend.service.VulnerabilityService vulnerabilityService) {
 		return args -> {
 			for (String roleName : new String[]{"ADMIN", "ANALYST"}) {
 				if (roleRepository.findByName(roleName).isEmpty()) {
@@ -28,6 +28,10 @@ public class BackendApplication {
 						.orElseGet(() -> Role.builder().build());
 				viewerRole.setName("VIEWER");
 				roleRepository.save(viewerRole);
+			}
+
+			if (vulnerabilityService.getAllVulnerabilities().isEmpty()) {
+				vulnerabilityService.triggerScan();
 			}
 		};
 	}

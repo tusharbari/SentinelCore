@@ -80,6 +80,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/alerts/**")
                         .hasRole("ADMIN")
 
+                        // Vulnerability APIs
+                        .requestMatchers(HttpMethod.GET, "/api/vulnerabilities/**")
+                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
+
+                        .requestMatchers(HttpMethod.POST, "/api/vulnerabilities/**")
+                        .hasAnyRole("ADMIN", "ANALYST")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/vulnerabilities/**")
+                        .hasAnyRole("ADMIN", "ANALYST")
+
                         // Report APIs
                         .requestMatchers("/api/reports/**")
                         .hasAnyRole("ADMIN", "ANALYST", "VIEWER")

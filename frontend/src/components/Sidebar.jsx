@@ -10,6 +10,7 @@ import {
   FaList,
   FaBell,
   FaCircle,
+  FaBug,
 } from "react-icons/fa";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -63,14 +64,9 @@ function Sidebar() {
       path: "/alert-list",
     },
     {
-      title: "Incident List",
-      icon: <FaShieldAlt />,
-      path: "/incidents",
-    },
-    {
-      title: "Playbooks",
-      icon: <FaCog />,
-      path: "/playbooks",
+      title: "Vulnerabilities",
+      icon: <FaBug />,
+      path: "/vulnerabilities",
     },
     {
       title: "Users",

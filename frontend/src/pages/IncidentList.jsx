@@ -97,22 +97,22 @@ const isPlaybookRelevant = (playbook, incident) => {
     return true;
   }
 
-  if (playbook.triggerType === "ALERT_SEVERITY" && 
-      playbook.triggerValue && 
-      incident.severity?.toLowerCase() === playbook.triggerValue.toLowerCase()) {
+  if (playbook.triggerType === "ALERT_SEVERITY" &&
+    playbook.triggerValue &&
+    incident.severity?.toLowerCase() === playbook.triggerValue.toLowerCase()) {
     return true;
   }
 
   if (playbook.triggerValue && (
-      incident.title?.toLowerCase().includes(playbook.triggerValue.toLowerCase()) ||
-      (incident.description && incident.description.toLowerCase().includes(playbook.triggerValue.toLowerCase()))
+    incident.title?.toLowerCase().includes(playbook.triggerValue.toLowerCase()) ||
+    (incident.description && incident.description.toLowerCase().includes(playbook.triggerValue.toLowerCase()))
   )) {
     return true;
   }
 
   // Dynamic name keyword match with fuzzy matching
   const stopWords = new Set(["response", "playbook", "mitigation", "containment", "detection", "automation", "remediation", "and", "or", "the", "on", "for", "action", "plan", "incident", "suspect"]);
-  
+
   const getCleanWords = (text) => {
     return String(text || "")
       .toLowerCase()
@@ -134,6 +134,77 @@ const isPlaybookRelevant = (playbook, incident) => {
 
   return false;
 };
+function SlaTimer({ deadline, status }) {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [isBreached, setIsBreached] = useState(false);
+
+  useEffect(() => {
+    if (!deadline) {
+      setTimeLeft("No SLA");
+      return;
+    }
+
+    const st = String(status || "").toUpperCase();
+    if (st === "RESOLVED" || st === "CLOSED") {
+      setTimeLeft("Stopped");
+      return;
+    }
+
+    const calculateTime = () => {
+      const now = new Date();
+      const target = new Date(deadline);
+      const diff = target - now;
+
+      if (diff <= 0) {
+        setIsBreached(true);
+        setTimeLeft("SLA BREACHED");
+        return;
+      }
+
+      setIsBreached(false);
+      const totalSeconds = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      const pad = (num) => String(num).padStart(2, "0");
+      setTimeLeft(`${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`);
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [deadline, status]);
+
+  if (!deadline) {
+    return <span className="text-slate-500">—</span>;
+  }
+
+  const st = String(status || "").toUpperCase();
+  if (st === "RESOLVED" || st === "CLOSED") {
+    return (
+      <span className="inline-flex items-center gap-1 text-emerald-400 text-[10px] font-semibold">
+        <FaClock className="text-emerald-500" /> SLA Met
+      </span>
+    );
+  }
+
+  if (isBreached) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-2 py-0.5 text-[9px] font-bold text-rose-400 border border-rose-500/20 animate-pulse">
+        <FaClock className="text-rose-400" /> BREACHED
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-cyan-400">
+      <FaClock className="text-cyan-500 shrink-0" /> {timeLeft}
+    </span>
+  );
+}
+
 function IncidentList() {
   const navigate = useNavigate();
   const role = getCurrentRole();
@@ -155,6 +226,7 @@ function IncidentList() {
     title: "",
     description: "",
     severity: "Medium",
+    priority: "P3",
     status: "Open",
     source: "Manual",
     assignedToId: "",
@@ -227,6 +299,7 @@ function IncidentList() {
         title: "",
         description: "",
         severity: "Medium",
+        priority: "P3",
         status: "Open",
         source: "Manual",
         assignedToId: "",
@@ -235,6 +308,26 @@ function IncidentList() {
     } catch (error) {
       console.error("Failed to create incident", error);
       alert("Error creating incident ticket. Please check fields.");
+    }
+  };
+
+  const handleEscalate = async (id) => {
+    try {
+      await api.put(`/incidents/${id}/escalate`);
+      fetchIncidents();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to escalate incident.");
+    }
+  };
+
+  const handleResolve = async (id) => {
+    try {
+      await api.put(`/incidents/${id}/resolve`);
+      fetchIncidents();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to resolve incident.");
     }
   };
 
@@ -258,7 +351,7 @@ function IncidentList() {
 
   const handleTriggerPlaybook = async () => {
     if (!selectedPlaybookId || !selectedIncident) return;
-    
+
     if (currentPlaybook && !isPlaybookRelevant(currentPlaybook, selectedIncident)) {
       alert("Please select the relevant playbook for this incident.");
       return;
@@ -384,6 +477,8 @@ function IncidentList() {
                   <th className="p-4 text-center">ID</th>
                   <th className="p-4 text-left">Incident Title</th>
                   <th className="p-4 text-center">Severity</th>
+                  <th className="p-4 text-center">Priority</th>
+                  <th className="p-4 text-center">SLA Countdown</th>
                   <th className="p-4 text-center">Status</th>
                   <th className="p-4 text-left">Source</th>
                   <th className="p-4 text-left">Assignee</th>
@@ -402,7 +497,14 @@ function IncidentList() {
                     >
                       <td className="p-4 text-center text-slate-500 font-mono">#{incident.id}</td>
                       <td className="p-4">
-                        <div className="font-semibold text-white">{incident.title}</div>
+                        <div className="font-semibold text-white flex items-center gap-2">
+                          {incident.title}
+                          {incident.escalated && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              ESCALATED
+                            </span>
+                          )}
+                        </div>
                         <div className="text-slate-500 text-xs mt-0.5 line-clamp-1 max-w-sm">
                           {incident.description || "No description provided."}
                         </div>
@@ -411,6 +513,14 @@ function IncidentList() {
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getSeverityColor(incident.severity)}`}>
                           {incident.severity}
                         </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-900 border border-slate-800 text-slate-400">
+                          {incident.priority || "P3"}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <SlaTimer deadline={incident.slaDeadline} status={incident.status} />
                       </td>
                       <td className="p-4 text-center">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getStatusColor(incident.status)}`}>
@@ -433,22 +543,51 @@ function IncidentList() {
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-3">
                           {canWrite && (() => {
-                            const isClosedOrResolved = incident.status === "Resolved" || incident.status === "Closed";
+                            const isClosedOrResolved = String(incident.status).toLowerCase() === "resolved" || String(incident.status).toLowerCase() === "closed";
                             return (
-                              <motion.button
-                                whileHover={isClosedOrResolved ? {} : { scale: 1.05 }}
-                                whileTap={isClosedOrResolved ? {} : { scale: 0.95 }}
-                                disabled={isClosedOrResolved}
-                                onClick={() => !isClosedOrResolved && openPlaybookModal(incident)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
-                                  isClosedOrResolved
+                              <>
+                                <motion.button
+                                  whileHover={isClosedOrResolved ? {} : { scale: 1.05 }}
+                                  whileTap={isClosedOrResolved ? {} : { scale: 0.95 }}
+                                  disabled={isClosedOrResolved}
+                                  onClick={() => !isClosedOrResolved && openPlaybookModal(incident)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${isClosedOrResolved
                                     ? "bg-slate-800/50 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-50"
                                     : "bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20"
-                                }`}
-                                title={isClosedOrResolved ? `Cannot run playbook on a ${incident.status.toLowerCase()} incident` : "Run Playbook"}
-                              >
-                                <FaPlay className="text-[10px]" /> Run Playbook
-                              </motion.button>
+                                    }`}
+                                  title={isClosedOrResolved ? `Cannot run playbook on a ${incident.status.toLowerCase()} incident` : "Run Playbook"}
+                                >
+                                  <FaPlay className="text-[10px]" /> Run Playbook
+                                </motion.button>
+
+                                <motion.button
+                                  whileHover={isClosedOrResolved || incident.escalated ? {} : { scale: 1.05 }}
+                                  whileTap={isClosedOrResolved || incident.escalated ? {} : { scale: 0.95 }}
+                                  disabled={isClosedOrResolved || incident.escalated}
+                                  onClick={() => !isClosedOrResolved && !incident.escalated && handleEscalate(incident.id)}
+                                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${isClosedOrResolved || incident.escalated
+                                    ? "bg-slate-800/50 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-50"
+                                    : "bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/20"
+                                    }`}
+                                  title={incident.escalated ? "Already Escalated" : "Escalate"}
+                                >
+                                  <FaArrowUp className="text-[10px]" /> Escalate
+                                </motion.button>
+
+                                <motion.button
+                                  whileHover={isClosedOrResolved ? {} : { scale: 1.05 }}
+                                  whileTap={isClosedOrResolved ? {} : { scale: 0.95 }}
+                                  disabled={isClosedOrResolved}
+                                  onClick={() => !isClosedOrResolved && handleResolve(incident.id)}
+                                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${isClosedOrResolved
+                                    ? "bg-slate-800/50 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-50"
+                                    : "bg-teal-500/10 hover:bg-teal-500 text-teal-400 hover:text-white border border-teal-500/20"
+                                    }`}
+                                  title={isClosedOrResolved ? "Already Resolved" : "Resolve"}
+                                >
+                                  <FaCheck className="text-[10px]" /> Resolve
+                                </motion.button>
+                              </>
                             );
                           })()}
                           {isAdmin && (
@@ -534,13 +673,13 @@ function IncidentList() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-400 mb-1.5">Severity *</label>
                     <select
                       value={newIncident.severity}
                       onChange={(e) => setNewIncident({ ...newIncident, severity: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-sky-400 outline-none"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:border-sky-400 outline-none text-sm"
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -550,11 +689,25 @@ function IncidentList() {
                   </div>
 
                   <div>
+                    <label className="block text-sm font-semibold text-slate-400 mb-1.5">Priority *</label>
+                    <select
+                      value={newIncident.priority}
+                      onChange={(e) => setNewIncident({ ...newIncident, priority: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:border-sky-400 outline-none text-sm"
+                    >
+                      <option value="P1">P1 (2h)</option>
+                      <option value="P2">P2 (4h)</option>
+                      <option value="P3">P3 (8h)</option>
+                      <option value="P4">P4 (24h)</option>
+                    </select>
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-semibold text-slate-400 mb-1.5">Status *</label>
                     <select
                       value={newIncident.status}
                       onChange={(e) => setNewIncident({ ...newIncident, status: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-sky-400 outline-none"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:border-sky-400 outline-none text-sm"
                     >
                       <option value="Open">Open</option>
                       <option value="Investigating">Investigating</option>
@@ -729,9 +882,9 @@ function IncidentList() {
                   <button
                     type="button"
                     disabled={
-                      isTriggering || 
-                      playbooks.length === 0 || 
-                      playbooks.filter((p) => isPlaybookRelevant(p, selectedIncident)).length === 0 || 
+                      isTriggering ||
+                      playbooks.length === 0 ||
+                      playbooks.filter((p) => isPlaybookRelevant(p, selectedIncident)).length === 0 ||
                       !isCurrentPlaybookRelevant
                     }
                     onClick={handleTriggerPlaybook}

@@ -19,8 +19,8 @@ import VulnerabilityDashboard from "../pages/VulnerabilityDashboard";
 import IncidentList from "../pages/IncidentList";
 import PlaybookList from "../pages/PlaybookList";
 import PlaybookExecutionDetail from "../pages/PlaybookExecutionDetail";
+import AuditLogs from "../pages/AuditLogs";
 import ProtectedRoute from "./ProtectedRoute";
-
 
 const writeRoles = ["ADMIN", "ANALYST"];
 const adminRoles = ["ADMIN"];
@@ -55,6 +55,9 @@ function AppRoutes() {
         <Route path="/incidents" element={protect(<IncidentList />)} />
         <Route path="/playbooks" element={protect(<PlaybookList />)} />
         <Route path="/playbooks/executions/:id" element={protect(<PlaybookExecutionDetail />)} />
+        
+        {/* Audit Logs Route */}
+        <Route path="/audit-logs" element={protect(<AuditLogs />, ["ADMIN", "ANALYST"])} />
       </Routes>
     </BrowserRouter>
   );

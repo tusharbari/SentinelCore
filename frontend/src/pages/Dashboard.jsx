@@ -9,12 +9,9 @@ import ThreatChart from "../components/ThreatChart";
 import RecentAlerts from "../components/RecentAlerts";
 import RecentThreats from "../components/RecentThreats";
 import SeverityChart from "../components/SeverityChart";
-import RoleWorkspace from "../components/RoleWorkspace";
-import { getCurrentRole } from "../services/auth";
 import { motion } from "framer-motion";
 
 function Dashboard() {
-  const role = getCurrentRole();
   return (
     <>
       <Navbar />
@@ -39,13 +36,11 @@ function Dashboard() {
               <div>
 
                 <h1 className="text-5xl font-extrabold text-white">
-                  {role ? `${role} Dashboard` : "Security Dashboard"}
+                  Security Dashboard
                 </h1>
 
                 <p className="mt-3 text-lg text-slate-400">
-                  {role === "ADMIN" && "Manage users, permissions, and security operations."}
-                  {role === "ANALYST" && "Investigate, create, and update security intelligence."}
-                  {role === "VIEWER" && "Review security intelligence and reports in read-only mode."}
+                  Real-time Cyber Threat Intelligence Platform
                 </p>
 
               </div>
@@ -75,8 +70,6 @@ function Dashboard() {
 
             </div>
           </motion.div>
-
-          <RoleWorkspace role={role} />
 
           {/* KPI Cards */}
 

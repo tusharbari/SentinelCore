@@ -91,7 +91,7 @@ function UserList() {
             case "ANALYST":
                 return "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
 
-            case "VIEWER":
+            case "USER":
                 return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
 
             default:
@@ -164,7 +164,7 @@ function UserList() {
                         <option value="All">All Roles</option>
                         <option value="ADMIN">ADMIN</option>
                         <option value="ANALYST">ANALYST</option>
-                        <option value="VIEWER">VIEWER</option>
+                        <option value="USER">USER</option>
                     </select>
 
                     <button

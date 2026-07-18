@@ -1,5 +1,6 @@
 package backend.config;
 
+import org.springframework.web.cors.CorsConfigurationSource;
 import backend.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -18,8 +19,8 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-    
-
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public AuthenticationManager authenticationManager(
@@ -31,100 +32,66 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(401, "Unauthorized");
-                        })
-                )
                 .authorizeHttpRequests(auth -> auth
+
                         // Public APIs
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // User Management
-                        .requestMatchers("/api/users", "/api/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
 
                         // Roles
-                        .requestMatchers("/api/roles", "/api/roles/**").hasRole("ADMIN")
+                        .requestMatchers("/api/roles/**").hasRole("ADMIN")
+
+                        // Audit Log APIs
+                        .requestMatchers("/api/audit/**").hasAnyRole("ADMIN", "ANALYST")
 
                         // Dashboard
-                        .requestMatchers("/api/dashboard", "/api/dashboard/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-
-                        // Threat APIs
-                        .requestMatchers(HttpMethod.GET, "/api/threats", "/api/threats/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-                        .requestMatchers(HttpMethod.POST, "/api/threats", "/api/threats/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.PUT, "/api/threats", "/api/threats/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/threats", "/api/threats/**")
-                        .hasRole("ADMIN")
-
-                        // IOC APIs
-                        .requestMatchers(HttpMethod.GET, "/api/ioc", "/api/ioc/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-                        .requestMatchers(HttpMethod.POST, "/api/ioc", "/api/ioc/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.PUT, "/api/ioc", "/api/ioc/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/ioc", "/api/ioc/**")
-                        .hasRole("ADMIN")
-
-                        // Alert APIs
-                        .requestMatchers(HttpMethod.GET, "/api/alerts", "/api/alerts/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-                        .requestMatchers(HttpMethod.POST, "/api/alerts", "/api/alerts/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.PUT, "/api/alerts", "/api/alerts/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/alerts", "/api/alerts/**")
-                        .hasRole("ADMIN")
-
-                        // Vulnerability APIs
-                        .requestMatchers(HttpMethod.GET, "/api/vulnerabilities", "/api/vulnerabilities/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-
-                        .requestMatchers(HttpMethod.POST, "/api/vulnerabilities", "/api/vulnerabilities/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-
-                        .requestMatchers(HttpMethod.PUT, "/api/vulnerabilities", "/api/vulnerabilities/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-
-                        // Report APIs
-                        .requestMatchers("/api/reports", "/api/reports/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-
-                        // Playbook APIs
-                        .requestMatchers(HttpMethod.GET, "/api/playbooks", "/api/playbooks/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-                        .requestMatchers(HttpMethod.POST, "/api/playbooks", "/api/playbooks/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.PUT, "/api/playbooks", "/api/playbooks/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/playbooks", "/api/playbooks/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "ANALYST")
 
                         // Incident APIs
-                        .requestMatchers(HttpMethod.GET, "/api/incidents", "/api/incidents/**")
-                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-                        .requestMatchers(HttpMethod.POST, "/api/incidents", "/api/incidents/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.PUT, "/api/incidents", "/api/incidents/**")
-                        .hasAnyRole("ADMIN", "ANALYST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/incidents", "/api/incidents/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/incidents/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.POST, "/api/incidents/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.PUT, "/api/incidents/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/incidents/**").hasAuthority("ROLE_ADMIN")
+
+                        // Threat APIs
+                        .requestMatchers(HttpMethod.GET, "/api/threats/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.POST, "/api/threats/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.PUT, "/api/threats/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/threats/**").hasRole("ADMIN")
+
+                        // IOC APIs
+                        .requestMatchers("/api/iocs/**").hasAnyRole("ADMIN", "ANALYST")
+
+                        // Alert APIs
+                        .requestMatchers("/api/alerts/**").hasAnyRole("ADMIN", "ANALYST")
+
+                        // Vulnerability APIs
+                        .requestMatchers(HttpMethod.GET, "/api/vulnerabilities/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.POST, "/api/vulnerabilities/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.PUT, "/api/vulnerabilities/**").hasAnyRole("ADMIN", "ANALYST")
+
+                        // Report APIs
+                        .requestMatchers("/api/reports/**").hasAnyRole("ADMIN", "ANALYST")
+
+                        // Playbook APIs
+                        .requestMatchers(HttpMethod.GET, "/api/playbooks/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.POST, "/api/playbooks/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.PUT, "/api/playbooks/**").hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/playbooks/**").hasRole("ADMIN")
 
                         // Allow Preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**")
-                        .permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .anyRequest()
-                        .authenticated()
+                        .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable());

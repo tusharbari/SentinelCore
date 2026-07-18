@@ -1,8 +1,8 @@
 import {
-  FaUsers,
   FaHome,
-  FaShieldAlt,
   FaPlusCircle,
+  FaShieldAlt,
+  FaUsers,
   FaExclamationTriangle,
   FaSearch,
   FaFileAlt,
@@ -13,6 +13,7 @@ import {
   FaBug,
   FaClipboardList,
   FaBookOpen,
+  FaHistory,
 } from "react-icons/fa";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -28,7 +29,7 @@ function Sidebar() {
 
   const menu = [
     {
-      title: "Dashboard",
+      title: "Home",
       icon: <FaHome />,
       path: "/dashboard",
     },
@@ -81,6 +82,12 @@ function Sidebar() {
       path: "/vulnerabilities",
     },
     {
+      title: "Audit Logs",
+      icon: <FaHistory />,
+      path: "/audit-logs",
+      roles: ["ADMIN", "ANALYST"],
+    },
+    {
       title: "Users",
       icon: <FaUsers />,
       path: "/users",
@@ -94,34 +101,13 @@ function Sidebar() {
   ];
 
   return (
-    <aside
-      className="
-        fixed
-        left-0
-        top-16
-        w-64
-        h-[calc(100vh-4rem)]
-        bg-slate-950/95
-        backdrop-blur-xl
-        border-r
-        border-white/10
-        text-white
-        flex
-        flex-col
-        overflow-y-auto
-        scrollbar-thin
-        scrollbar-thumb-slate-700
-        scrollbar-track-transparent
-        z-40
-      "
-    >
+    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-20">
 
-      {/* Logo */}
+      <div className="p-6 border-b border-slate-800">
 
-      <div className="p-8 border-b border-white/10">
-
-        <h1 className="text-3xl font-bold text-sky-400">
-          🛡 SentinelCore
+        <h1 className="text-white font-bold text-lg tracking-wider flex items-center gap-2">
+          <FaShieldAlt className="text-sky-500 shrink-0" />
+          <span>SENTINEL CORE</span>
         </h1>
 
         <p className="text-slate-400 text-sm mt-2">
@@ -130,67 +116,61 @@ function Sidebar() {
 
       </div>
 
-      {/* Menu */}
-
-      <div className="flex-1 mt-5 px-3 pb-6">
+      <div className="flex-1 mt-5 px-3 pb-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
 
         {menu.filter((item) => !item.roles || item.roles.includes(role)).map((item) => {
 
           const active = location.pathname === item.path;
 
           return (
-
-            <motion.div
+            <button
               key={item.title}
-              whileHover={{ x: 6 }}
-              whileTap={{ scale: 0.97 }}
               onClick={() => navigate(item.path)}
-              className={`
-                flex items-center
-                gap-4
-                px-4
-                py-3
-                rounded-2xl
-                cursor-pointer
-                mb-2
-                transition-all
-                duration-300
-
-                ${
-                  active
-                    ? "bg-sky-500 text-white shadow-lg shadow-sky-500/30"
-                    : "hover:bg-slate-800 text-slate-300"
-                }
-              `}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 mb-1 group relative overflow-hidden ${
+                active
+                  ? "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                  : "text-slate-400 hover:text-white hover:bg-slate-850/50 border border-transparent"
+              }`}
             >
+              {active && (
+                <motion.div
+                  layoutId="activeIndicator"
+                  className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-y from-sky-400 to-blue-500 rounded-r"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
 
-              <span className="text-lg">
+              <span className={`text-base transition-colors ${
+                active ? "text-sky-400" : "text-slate-400 group-hover:text-sky-400"
+              }`}>
                 {item.icon}
               </span>
 
-              <span className="font-medium">
-                {item.title}
-              </span>
+              <span className="truncate">{item.title}</span>
 
-            </motion.div>
-
+              {!active && (
+                <FaCircle className="opacity-0 group-hover:opacity-100 text-[6px] text-sky-500 absolute right-4 transition-all duration-300 transform scale-0 group-hover:scale-100" />
+              )}
+            </button>
           );
         })}
 
       </div>
 
-      {/* Footer */}
+      <div className="p-4 border-t border-slate-800 bg-slate-900/50">
 
-      <div className="mt-auto p-6 border-t border-white/10">
-
-        <div className="flex items-center gap-2 text-emerald-400">
-
-          <FaCircle className="text-xs animate-pulse" />
-
-          <span className="text-sm">
-            System Online
-          </span>
-
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-sky-500/20">
+            {role ? role.charAt(0) : "U"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-slate-300 text-xs font-semibold uppercase tracking-wider">
+              System Access
+            </p>
+            <p className="text-slate-500 text-[10px] mt-0.5 truncate">
+              {localStorage.getItem("email") || "guest@sentinelcore.local"}
+            </p>
+          </div>
         </div>
 
         <p className="text-slate-500 text-xs mt-3">

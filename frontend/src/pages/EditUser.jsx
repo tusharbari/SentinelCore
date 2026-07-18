@@ -30,12 +30,10 @@ function EditUser() {
     },
     enabled: true,
 });
-    const [roles, setRoles] = useState([]);
 
     useEffect(() => {
 
         loadUser();
-        loadRoles();
 
     }, []);
 
@@ -58,16 +56,6 @@ function EditUser() {
 
     }
 
-};
-
-const loadRoles = async () => {
-    try {
-        const response = await api.get("/roles");
-        setRoles(response.data);
-    } catch (error) {
-        console.log(error);
-        alert("Failed to load roles");
-    }
 };
 const updateUser = async () => {
 
@@ -163,10 +151,10 @@ const updateUser = async () => {
                                     },
                                 })
                             }
-                            options={roles.map((role) => ({
-                                value: role.id,
-                                label: role.name,
-                            }))}
+                            options={[
+                                { value: 1, label: "ADMIN" },
+                                { value: 2, label: "ANALYST" },
+                            ]}
                         />
 
                         <ModernSelect

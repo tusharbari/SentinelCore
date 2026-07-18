@@ -32,6 +32,13 @@ public class Incident {
     @Column(nullable = false)
     private String source;
 
+    private String priority; // P1, P2, P3, P4
+
+    @Builder.Default
+    private Boolean escalated = false;
+
+    private LocalDateTime slaDeadline;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "assigned_to_id")
     private User assignedTo;
@@ -46,6 +53,9 @@ public class Incident {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (escalated == null) {
+            escalated = false;
+        }
     }
 
     @PreUpdate

@@ -2,7 +2,6 @@ package backend.service;
 
 import backend.dto.JwtResponse;
 import backend.dto.RegisterRequest;
-import backend.entity.RefreshToken;
 import backend.entity.Role;
 import backend.entity.User;
 import backend.repository.RoleRepository;
@@ -27,9 +26,6 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private RefreshTokenService refreshTokenService;
-
     // ===========================
     // LOGIN
     // ===========================
@@ -42,18 +38,15 @@ public class AuthService {
             throw new RuntimeException("Invalid Password");
         }
 
-        String role = normalizeRole(user.getRole().getName());
+        String role = user.getRole().getName();
 
         String token = jwtUtil.generateToken(
                 user.getEmail(),
                 role
         );
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
-
         return new JwtResponse(
                 token,
-                refreshToken.getToken(),
                 user.getEmail(),
                 role,
                 "Login Successful"
@@ -85,9 +78,5 @@ public class AuthService {
         userRepository.save(user);
 
         return "Registration Successful";
-    }
-
-    private String normalizeRole(String role) {
-        return "USER".equalsIgnoreCase(role) ? "VIEWER" : role;
     }
 }

@@ -16,7 +16,7 @@
     "framer-motion": "^12.42.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
-    "lucide-react": "^1.25.0",
+    "lucide-react": "^1.24.0",
     "react": "^19.2.7",
     "react-countup": "^6.5.3",
     "react-dom": "^19.2.7",

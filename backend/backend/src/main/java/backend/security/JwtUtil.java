@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -15,18 +14,14 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    @Value("${spring.jwt.secret}")
-    private String secret;
+    // Secret Key (minimum 32 characters)
+    private static final String SECRET =
+            "SentinelCoreSecretKey12345678901234567890";
 
-    @Value("${spring.jwt.expiration}")
-    private long expirationTime;
+    private final SecretKey secretKey = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    private SecretKey secretKey;
-
-    @jakarta.annotation.PostConstruct
-    public void init() {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
-    }
+    // 24 Hours
+    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
 
     // ================= Generate Token =================
 
@@ -40,7 +35,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }

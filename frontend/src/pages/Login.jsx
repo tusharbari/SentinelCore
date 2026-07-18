@@ -38,14 +38,10 @@ function Login() {
         return;
       }
 
-      sessionStorage.setItem("token", response.data.token);
-      sessionStorage.setItem("refreshToken", response.data.refreshToken);
-      sessionStorage.setItem("email", response.data.email);
-      sessionStorage.setItem(
-        "role",
-        response.data.role === "USER" ? "VIEWER" : response.data.role
-      );
-      sessionStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("email", response.data.email);
+      localStorage.setItem("role", response.data.role);
+      localStorage.setItem("isLoggedIn", "true");
 
       alert(response.data.message);
 

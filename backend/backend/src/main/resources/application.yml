@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/sentinelcore
     username: postgres
-    password: postgres123
+    password: Akhila 140307
 
   jpa:
     hibernate:
@@ -16,6 +16,10 @@ spring:
     secret: 1234567890123456789012345678901234567890123456789012345678901234
     expiration: 300000
     refreshExpiration: 604800000
+
+  logging:
+    level:
+      org.springframework.security: DEBUG
 
 #  data:
 #    mongodb:

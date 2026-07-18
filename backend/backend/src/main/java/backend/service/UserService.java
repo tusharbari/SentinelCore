@@ -44,7 +44,7 @@ public class UserService {
 
     public User addUser(User user) {
 
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         }
 

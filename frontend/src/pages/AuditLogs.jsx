@@ -1,0 +1,322 @@
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FaHistory, FaUserShield, FaClock } from "react-icons/fa";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
+import AnimatedBackground from "../components/AnimatedBackground";
+import PageHeader from "../components/ui/PageHeader";
+import GlassCard from "../components/ui/GlassCard";
+import api from "../services/api";
+
+const parseTimestamp = (value) => {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+
+  if (Array.isArray(value)) {
+    const [year, month, day, hour = 0, minute = 0, second = 0] = value;
+    const parsed = new Date(year, month - 1, day, hour, minute, second);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+
+  return null;
+};
+
+const formatTimestamp = (value) => {
+  const parsed = parseTimestamp(value);
+  return parsed ? parsed.toLocaleString() : "—";
+};
+
+function AuditLogs() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [incidents, setIncidents] = useState([]);
+  const [selectedIncidentId, setSelectedIncidentId] = useState("");
+  const [selectedLog, setSelectedLog] = useState(null);
+
+  useEffect(() => {
+    const fetchIncidents = async () => {
+      try {
+        const response = await api.get("/incidents");
+        setIncidents(response.data || []);
+      } catch (err) {
+        console.error("Failed to fetch incidents list", err);
+      }
+    };
+    fetchIncidents();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchLogs = async () => {
+      try {
+        const response = await api.get("/audit");
+        if (!isMounted) return;
+
+        const nextLogs = Array.isArray(response.data) ? response.data : [];
+        const sortedLogs = [...nextLogs].sort((left, right) => {
+          const leftTime = parseTimestamp(left.timestamp);
+          const rightTime = parseTimestamp(right.timestamp);
+
+          if (!leftTime && !rightTime) return 0;
+          if (!leftTime) return 1;
+          if (!rightTime) return -1;
+
+          return rightTime - leftTime;
+        });
+
+        setLogs(sortedLogs);
+      } catch (err) {
+        console.error("Failed to fetch audit logs", err);
+        if (isMounted) {
+          setError("Unable to load audit logs from the backend right now.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchLogs();
+    const intervalId = window.setInterval(fetchLogs, 10000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const filteredLogs = selectedIncidentId
+    ? logs.filter((log) => log.incident?.id === Number(selectedIncidentId))
+    : logs;
+
+  return (
+    <>
+      <Navbar />
+      <Sidebar />
+
+      <main className="ml-64 mt-16 min-h-screen bg-slate-950 relative overflow-hidden">
+        <AnimatedBackground />
+
+        <div className="relative z-10 p-8">
+          <PageHeader
+            title="Audit Logs"
+            subtitle="Review incident activity, ownership changes, and security events in real time."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <GlassCard className="p-6 border border-cyan-500/20 text-cyan-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Tracked Events</p>
+                  <p className="text-3xl font-bold text-white mt-2">{filteredLogs.length}</p>
+                </div>
+                <FaHistory className="text-2xl" />
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6 border border-emerald-500/20 text-emerald-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Latest Actor</p>
+                  <p className="text-3xl font-bold text-white mt-2">{filteredLogs[0]?.user?.username || filteredLogs[0]?.user?.name || "N/A"}</p>
+                </div>
+                <FaUserShield className="text-2xl" />
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6 border border-violet-500/20 text-violet-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Last Update</p>
+                  <p className="text-3xl font-bold text-white mt-2">{formatTimestamp(filteredLogs[0]?.timestamp)}</p>
+                </div>
+                <FaClock className="text-2xl" />
+              </div>
+            </GlassCard>
+          </div>
+
+          <GlassCard className="p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Incident Audit Timeline</h2>
+                <p className="text-slate-400 mt-1">Activity tracking details for the system and incidents.</p>
+              </div>
+              <select
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-white outline-none min-w-[200px]"
+                value={selectedIncidentId}
+                onChange={(e) => setSelectedIncidentId(e.target.value)}
+              >
+                <option value="">All Incidents / Events</option>
+                {incidents.map((incident) => (
+                  <option key={incident.id} value={incident.id}>
+                    Incident #{incident.id}: {incident.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {loading ? (
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                Loading audit logs from the backend...
+              </div>
+            ) : error ? (
+              <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-6 text-rose-300">
+                {error}
+              </div>
+            ) : filteredLogs.length === 0 ? (
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-400">
+                No audit events were returned for this selection.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredLogs.map((log, index) => (
+                  <motion.div
+                    key={log.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: index * 0.05 }}
+                    onClick={() => setSelectedLog(log)}
+                    className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 hover:border-cyan-500/50 hover:bg-slate-800/40 transition-all duration-300 cursor-pointer shadow-lg shadow-black/10"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">{log.action || "System Action"}</p>
+                        <p className="text-slate-400 mt-1">{log.description || "No description provided."}</p>
+                      </div>
+                      <div className="text-sm text-slate-400">
+                        <p>{log.user?.username || log.user?.name || "System"}</p>
+                        <p className="mt-1">{formatTimestamp(log.timestamp)}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </GlassCard>
+
+          {/* Detailed Audit Log Modal */}
+          {selectedLog && (
+            <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900/95 p-6 shadow-2xl relative my-8"
+              >
+                {/* Close X Button */}
+                <button
+                  onClick={() => setSelectedLog(null)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer text-lg font-bold"
+                >
+                  &times;
+                </button>
+
+                {/* Modal Header */}
+                <div className="flex items-center gap-3 mb-6 border-b border-slate-800/80 pb-4">
+                  <span className={`font-mono font-bold px-2.5 py-1 rounded text-xs border ${
+                    selectedLog.action === "DELETE" ? "bg-rose-500/15 text-rose-300 border-rose-500/25" :
+                    selectedLog.action === "CREATE" ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/25" :
+                    "bg-amber-500/15 text-amber-300 border-amber-500/25"
+                  }`}>
+                    {selectedLog.action || "SYSTEM"}
+                  </span>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Event Log #{selectedLog.id}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{formatTimestamp(selectedLog.timestamp)}</p>
+                  </div>
+                </div>
+
+                {/* Modal Body */}
+                <div className="space-y-4">
+                  {/* Description */}
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Activity Description</h4>
+                    <p className="text-slate-300 text-sm mt-1.5 leading-relaxed bg-slate-950/40 rounded-xl border border-slate-800 p-3">
+                      {selectedLog.description || "No description provided."}
+                    </p>
+                  </div>
+
+                  {/* Actor Details */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-slate-800/60 pt-4">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Triggered By</h4>
+                      <p className="text-slate-300 text-sm mt-1 font-semibold">
+                        {selectedLog.user?.name || selectedLog.user?.username || "System Engine"}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">User Email</h4>
+                      <p className="text-slate-400 text-xs mt-1 truncate">
+                        {selectedLog.user?.email || "system@sentinelcore.local"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Associated Incident Detail */}
+                  {selectedLog.incident && (
+                    <div className="border-t border-slate-800/60 pt-4">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Linked Incident Details</h4>
+                      <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-mono text-slate-400">Incident #{selectedLog.incident.id}</span>
+                          <div className="flex gap-2">
+                            <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold border ${
+                              selectedLog.incident.severity?.toUpperCase() === "CRITICAL" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                              selectedLog.incident.severity?.toUpperCase() === "HIGH" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            }`}>
+                              {selectedLog.incident.severity}
+                            </span>
+                            <span className="rounded bg-violet-500/10 border border-violet-500/20 text-violet-300 px-1.5 py-0.5 text-[10px] font-semibold">
+                              {selectedLog.incident.priority}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm text-white">{selectedLog.incident.title}</p>
+                          <p className="text-slate-400 text-xs mt-1 line-clamp-3 leading-relaxed">{selectedLog.incident.description}</p>
+                        </div>
+                        <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/60 text-slate-400">
+                          <span>Status: <strong className="text-slate-300 font-semibold">{selectedLog.incident.status}</strong></span>
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                            selectedLog.incident.escalated ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-slate-800 text-slate-500 border-slate-700/50"
+                          }`}>
+                            {selectedLog.incident.escalated ? "ESCALATED" : "NORMAL"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setSelectedLog(null)}
+                    className="rounded-xl border border-slate-700 hover:bg-slate-800 text-xs font-semibold px-4 py-2 text-slate-300 hover:text-white transition-all cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </div>
+      </main>
+    </>
+  );
+}
+
+export default AuditLogs;

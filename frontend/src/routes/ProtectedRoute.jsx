@@ -1,17 +1,10 @@
 import { Navigate } from "react-router-dom";
-import { getCurrentRole } from "../services/auth";
 
-function ProtectedRoute({ children, allowedRoles }) {
+function ProtectedRoute({ children }) {
 
-    const token = sessionStorage.getItem("token");
-    const role = getCurrentRole();
+    const token = localStorage.getItem("token");
 
-    if (!token) return <Navigate to="/" replace />;
-    if (allowedRoles && !allowedRoles.includes(role)) {
-        return <Navigate to="/dashboard" replace />;
-    }
-
-    return children;
+    return token ? children : <Navigate to="/" replace />;
 
 }
 

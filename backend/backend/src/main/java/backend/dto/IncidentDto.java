@@ -32,6 +32,9 @@ public class IncidentDto {
 
     private Long assignedToId;
     private String assignedToName;
+    private String priority;
+    private Boolean escalated;
+    private LocalDateTime slaDeadline;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

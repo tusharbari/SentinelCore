@@ -48,4 +48,28 @@ public class IncidentController {
     public void deleteIncident(@PathVariable Long id) {
         incidentService.deleteIncident(id);
     }
+
+    // Escalate Incident
+    @PutMapping("/{id}/escalate")
+    public IncidentDto escalateIncident(@PathVariable Long id) {
+        return incidentService.escalateIncident(id);
+    }
+
+    // Resolve Incident
+    @PutMapping("/{id}/resolve")
+    public IncidentDto resolveIncident(@PathVariable Long id) {
+        return incidentService.resolveIncident(id);
+    }
+
+    // Get SLA time remaining
+    @GetMapping("/{id}/sla")
+    public String getRemainingSLA(@PathVariable Long id) {
+        return incidentService.getRemainingSLA(id);
+    }
+
+    // Check if SLA is breached
+    @GetMapping("/{id}/sla-breached")
+    public boolean isSLABreached(@PathVariable Long id) {
+        return incidentService.isSLABreached(id);
+    }
 }

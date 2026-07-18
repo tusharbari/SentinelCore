@@ -1,32 +1,22 @@
 import { FaBell, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getCurrentRole } from "../services/auth";
-import api from "../services/api";
 
 function Navbar() {
 
     const navigate = useNavigate();
 
-    const email = sessionStorage.getItem("email");
-    const role = getCurrentRole();
+    const email = localStorage.getItem("email");
+    const role = localStorage.getItem("role");
 
-    const logout = async () => {
-        const refreshToken = sessionStorage.getItem("refreshToken");
+    const logout = () => {
 
-        try {
-            if (refreshToken) {
-                await api.post("/auth/logout", { refreshToken });
-            }
-        } catch (error) {
-            console.error("Logout request failed", error);
-        } finally {
-            sessionStorage.removeItem("token");
-            sessionStorage.removeItem("refreshToken");
-            sessionStorage.removeItem("email");
-            sessionStorage.removeItem("role");
-            sessionStorage.removeItem("isLoggedIn");
-            navigate("/");
-        }
+        localStorage.removeItem("token");
+        localStorage.removeItem("email");
+        localStorage.removeItem("role");
+        localStorage.removeItem("isLoggedIn");
+
+        navigate("/");
+
     };
 
     return (
@@ -57,9 +47,7 @@ function Navbar() {
                             className={`text-xs px-2 py-1 rounded-full font-bold ${
                                 role === "ADMIN"
                                     ? "bg-red-600 text-white"
-                                    : role === "ANALYST"
-                                        ? "bg-cyan-600 text-white"
-                                        : "bg-blue-600 text-white"
+                                    : "bg-blue-600 text-white"
                             }`}
                         >
                             {role}

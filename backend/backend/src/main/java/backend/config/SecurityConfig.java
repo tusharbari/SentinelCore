@@ -1,5 +1,5 @@
 package backend.config;
-import org.springframework.web.cors.CorsConfigurationSource;
+
 import backend.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -18,32 +18,25 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-    @Autowired
-    private CorsConfigurationSource corsConfigurationSource;
+    
+
 
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration)
             throws Exception {
-
         return configuration.getAuthenticationManager();
-
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
-
         http
                 .csrf(csrf -> csrf.disable())
-
                 .cors(Customizer.withDefaults())
-
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(auth -> auth
-
                         // Public APIs
                         .requestMatchers("/api/auth/**").permitAll()
 
@@ -60,39 +53,30 @@ public class SecurityConfig {
                         // Threat APIs
                         .requestMatchers(HttpMethod.GET, "/api/threats/**")
                         .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-
                         .requestMatchers(HttpMethod.POST, "/api/threats/**")
                         .hasAnyRole("ADMIN", "ANALYST")
-
                         .requestMatchers(HttpMethod.PUT, "/api/threats/**")
                         .hasAnyRole("ADMIN", "ANALYST")
-
                         .requestMatchers(HttpMethod.DELETE, "/api/threats/**")
                         .hasRole("ADMIN")
 
                         // IOC APIs
                         .requestMatchers(HttpMethod.GET, "/api/ioc/**")
                         .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-
                         .requestMatchers(HttpMethod.POST, "/api/ioc/**")
                         .hasAnyRole("ADMIN", "ANALYST")
-
                         .requestMatchers(HttpMethod.PUT, "/api/ioc/**")
                         .hasAnyRole("ADMIN", "ANALYST")
-
                         .requestMatchers(HttpMethod.DELETE, "/api/ioc/**")
                         .hasRole("ADMIN")
 
                         // Alert APIs
                         .requestMatchers(HttpMethod.GET, "/api/alerts/**")
                         .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
-
                         .requestMatchers(HttpMethod.POST, "/api/alerts/**")
                         .hasAnyRole("ADMIN", "ANALYST")
-
                         .requestMatchers(HttpMethod.PUT, "/api/alerts/**")
                         .hasAnyRole("ADMIN", "ANALYST")
-
                         .requestMatchers(HttpMethod.DELETE, "/api/alerts/**")
                         .hasRole("ADMIN")
 
@@ -110,17 +94,34 @@ public class SecurityConfig {
                         .requestMatchers("/api/reports/**")
                         .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
 
+                        // Playbook APIs
+                        .requestMatchers(HttpMethod.GET, "/api/playbooks/**")
+                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
+                        .requestMatchers(HttpMethod.POST, "/api/playbooks/**")
+                        .hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.PUT, "/api/playbooks/**")
+                        .hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/playbooks/**")
+                        .hasRole("ADMIN")
+
+                        // Incident APIs
+                        .requestMatchers(HttpMethod.GET, "/api/incidents/**")
+                        .hasAnyRole("ADMIN", "ANALYST", "VIEWER")
+                        .requestMatchers(HttpMethod.POST, "/api/incidents/**")
+                        .hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.PUT, "/api/incidents/**")
+                        .hasAnyRole("ADMIN", "ANALYST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/incidents/**")
+                        .hasRole("ADMIN")
+
                         // Allow Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
 
                         .anyRequest()
                         .authenticated()
-
                 )
-
                 .httpBasic(httpBasic -> httpBasic.disable())
-
                 .formLogin(form -> form.disable());
 
         http.addFilterBefore(
@@ -129,7 +130,5 @@ public class SecurityConfig {
         );
 
         return http.build();
-
     }
-
 }

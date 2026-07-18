@@ -30,7 +30,7 @@ function Sidebar() {
       icon: <FaHome />,
       path: "/dashboard",
     },
-     {
+    {
       title: "Add Threat",
       icon: <FaPlusCircle />,
       path: "/add-threat",
@@ -41,7 +41,6 @@ function Sidebar() {
       icon: <FaShieldAlt />,
       path: "/threat-list",
     },
-   
     {
       title: "Add IOC",
       icon: <FaSearch />,

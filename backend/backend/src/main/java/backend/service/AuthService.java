@@ -2,6 +2,7 @@ package backend.service;
 
 import backend.dto.JwtResponse;
 import backend.dto.RegisterRequest;
+import backend.entity.RefreshToken;
 import backend.entity.Role;
 import backend.entity.User;
 import backend.repository.RoleRepository;
@@ -26,6 +27,9 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
     // ===========================
     // LOGIN
     // ===========================
@@ -45,8 +49,11 @@ public class AuthService {
                 role
         );
 
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+
         return new JwtResponse(
                 token,
+                refreshToken.getToken(),
                 user.getEmail(),
                 role,
                 "Login Successful"

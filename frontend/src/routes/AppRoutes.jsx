@@ -46,6 +46,11 @@ function AppRoutes() {
         <Route path="/edit-user/:id" element={protect(<EditUser />, adminRoles)} />
         <Route path="/vulnerabilities" element={protect(<VulnerabilityDashboard />)} />
         <Route path="/reports" element={protect(<Reports />)} />
+        
+        {/* Playbook and Incident Routes */}
+        <Route path="/incidents" element={protect(<IncidentList />)} />
+        <Route path="/playbooks" element={protect(<PlaybookList />)} />
+        <Route path="/playbooks/executions/:id" element={protect(<PlaybookExecutionDetail />)} />
       </Routes>
     </BrowserRouter>
   );

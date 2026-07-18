@@ -21,6 +21,7 @@ import PlaybookList from "../pages/PlaybookList";
 import PlaybookExecutionDetail from "../pages/PlaybookExecutionDetail";
 import ProtectedRoute from "./ProtectedRoute";
 
+
 const writeRoles = ["ADMIN", "ANALYST"];
 const adminRoles = ["ADMIN"];
 

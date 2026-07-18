@@ -15,6 +15,125 @@ import playbookService from "../services/playbookService";
 import api from "../services/api";
 import { getCurrentRole } from "../services/auth";
 
+const getEditDistance = (a, b) => {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+};
+
+const wordsMatchFuzzy = (w1, w2) => {
+  if (w1 === w2) return true;
+  if (w1.startsWith(w2) || w2.startsWith(w1)) return true;
+  const len1 = w1.length;
+  const len2 = w2.length;
+  const dist = getEditDistance(w1, w2);
+  if (len1 >= 7 && len2 >= 7 && dist <= 2) return true;
+  if (len1 >= 5 && len2 >= 5 && dist <= 1) return true;
+  return false;
+};
+const getPlaybookRelation = (playbook, incident) => {
+  if (!playbook || !incident) return "NONE";
+
+  const pbName = String(playbook.name || "").toLowerCase();
+
+  const stopWords = new Set(["response", "playbook", "mitigation", "containment", "detection", "automation", "remediation", "and", "or", "the", "on", "for", "action", "plan", "incident", "suspect"]);
+  const getCleanWords = (text) => {
+    return String(text || "")
+      .toLowerCase()
+      .split(/[\s_\-]+/)
+      .map(word => word.replace(/[^a-z0-9]/g, ""))
+      .filter(word => word.length > 2 && !stopWords.has(word));
+  };
+
+  const incWords = getCleanWords(incident.title).concat(getCleanWords(incident.description));
+
+  const isVulnIncident = incWords.some(w => wordsMatchFuzzy("vulnerability", w)) || incWords.some(w => wordsMatchFuzzy("scan", w));
+  const isMalwareIncident = incWords.some(w => wordsMatchFuzzy("malware", w));
+  const isBruteForceIncident = incWords.some(w => wordsMatchFuzzy("brute", w));
+  const isPrivEscIncident = incWords.some(w => wordsMatchFuzzy("privilege", w));
+
+  const isVulnPlaybook = pbName.includes("vulnerability") || pbName.includes("scan");
+  const isMalwarePlaybook = pbName.includes("malware");
+  const isBruteForcePlaybook = pbName.includes("brute");
+  const isPrivEscPlaybook = pbName.includes("privilege");
+
+  // Recommended matching
+  if (isMalwareIncident && isMalwarePlaybook) return "RECOMMENDED";
+  if (isBruteForceIncident && isBruteForcePlaybook) return "RECOMMENDED";
+  if (isPrivEscIncident && isPrivEscPlaybook) return "RECOMMENDED";
+  if (isVulnIncident && isVulnPlaybook && !isMalwareIncident && !isBruteForceIncident && !isPrivEscIncident) {
+    return "RECOMMENDED";
+  }
+
+  // Secondary matching (Vulnerability scan is secondary for Malware, Brute Force, and Privilege Escalation)
+  if (isVulnPlaybook && (isMalwareIncident || isBruteForceIncident || isPrivEscIncident)) {
+    return "SECONDARY";
+  }
+
+  return "NONE";
+};
+
+const isPlaybookRelevant = (playbook, incident) => {
+  if (!playbook || !incident) return false;
+  if (playbook.triggerType === "MANUAL") return true;
+
+  const relation = getPlaybookRelation(playbook, incident);
+  if (relation === "RECOMMENDED" || relation === "SECONDARY") {
+    return true;
+  }
+
+  if (playbook.triggerType === "ALERT_SEVERITY" && 
+      playbook.triggerValue && 
+      incident.severity?.toLowerCase() === playbook.triggerValue.toLowerCase()) {
+    return true;
+  }
+
+  if (playbook.triggerValue && (
+      incident.title?.toLowerCase().includes(playbook.triggerValue.toLowerCase()) ||
+      (incident.description && incident.description.toLowerCase().includes(playbook.triggerValue.toLowerCase()))
+  )) {
+    return true;
+  }
+
+  // Dynamic name keyword match with fuzzy matching
+  const stopWords = new Set(["response", "playbook", "mitigation", "containment", "detection", "automation", "remediation", "and", "or", "the", "on", "for", "action", "plan", "incident", "suspect"]);
+  
+  const getCleanWords = (text) => {
+    return String(text || "")
+      .toLowerCase()
+      .split(/[\s_\-]+/)
+      .map(word => word.replace(/[^a-z0-9]/g, ""))
+      .filter(word => word.length > 2 && !stopWords.has(word));
+  };
+
+  const pbKeywords = getCleanWords(playbook.name);
+  const incWords = getCleanWords(incident.title).concat(getCleanWords(incident.description));
+
+  for (const w1 of pbKeywords) {
+    for (const w2 of incWords) {
+      if (wordsMatchFuzzy(w1, w2)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
 function IncidentList() {
   const navigate = useNavigate();
   const role = getCurrentRole();
@@ -46,6 +165,9 @@ function IncidentList() {
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [selectedPlaybookId, setSelectedPlaybookId] = useState("");
   const [isTriggering, setIsTriggering] = useState(false);
+
+  const currentPlaybook = playbooks.find((p) => String(p.id) === String(selectedPlaybookId));
+  const isCurrentPlaybookRelevant = currentPlaybook ? isPlaybookRelevant(currentPlaybook, selectedIncident) : true;
 
   useEffect(() => {
     fetchIncidents();
@@ -119,13 +241,29 @@ function IncidentList() {
   const openPlaybookModal = (incident) => {
     setSelectedIncident(incident);
     setIsPlaybookModalOpen(true);
-    if (playbooks.length > 0) {
-      setSelectedPlaybookId(playbooks[0].id);
+    const relevant = playbooks.filter((p) => isPlaybookRelevant(p, incident));
+    const recommended = relevant.filter((p) => getPlaybookRelation(p, incident) === "RECOMMENDED");
+    const secondary = relevant.filter((p) => getPlaybookRelation(p, incident) === "SECONDARY");
+
+    if (recommended.length > 0) {
+      setSelectedPlaybookId(recommended[0].id);
+    } else if (secondary.length > 0) {
+      setSelectedPlaybookId(secondary[0].id);
+    } else if (relevant.length > 0) {
+      setSelectedPlaybookId(relevant[0].id);
+    } else {
+      setSelectedPlaybookId("");
     }
   };
 
   const handleTriggerPlaybook = async () => {
     if (!selectedPlaybookId || !selectedIncident) return;
+    
+    if (currentPlaybook && !isPlaybookRelevant(currentPlaybook, selectedIncident)) {
+      alert("Please select the relevant playbook for this incident.");
+      return;
+    }
+
     setIsTriggering(true);
     try {
       const execution = await playbookService.triggerPlaybook(
@@ -294,16 +432,25 @@ function IncidentList() {
                       </td>
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-3">
-                          {canWrite && (
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => openPlaybookModal(incident)}
-                              className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300"
-                            >
-                              <FaPlay className="text-[10px]" /> Run Playbook
-                            </motion.button>
-                          )}
+                          {canWrite && (() => {
+                            const isClosedOrResolved = incident.status === "Resolved" || incident.status === "Closed";
+                            return (
+                              <motion.button
+                                whileHover={isClosedOrResolved ? {} : { scale: 1.05 }}
+                                whileTap={isClosedOrResolved ? {} : { scale: 0.95 }}
+                                disabled={isClosedOrResolved}
+                                onClick={() => !isClosedOrResolved && openPlaybookModal(incident)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
+                                  isClosedOrResolved
+                                    ? "bg-slate-800/50 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-50"
+                                    : "bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20"
+                                }`}
+                                title={isClosedOrResolved ? `Cannot run playbook on a ${incident.status.toLowerCase()} incident` : "Run Playbook"}
+                              >
+                                <FaPlay className="text-[10px]" /> Run Playbook
+                              </motion.button>
+                            );
+                          })()}
                           {isAdmin && (
                             <motion.button
                               whileHover={{ scale: 1.1 }}
@@ -505,35 +652,71 @@ function IncidentList() {
                   <strong className="block text-white mt-1 text-base">"{selectedIncident?.title}"</strong>
                 </p>
 
-                {playbooks.length > 0 ? (
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-400 mb-1.5">Choose Playbook</label>
-                    <select
-                      value={selectedPlaybookId}
-                      onChange={(e) => setSelectedPlaybookId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-emerald-400 outline-none"
-                    >
-                      {playbooks.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
+                {(() => {
+                  const relevantPlaybooks = playbooks.filter((p) => isPlaybookRelevant(p, selectedIncident));
+                  const recommendedPlaybooks = relevantPlaybooks.filter((p) => getPlaybookRelation(p, selectedIncident) === "RECOMMENDED");
+                  const secondaryPlaybooks = relevantPlaybooks.filter((p) => getPlaybookRelation(p, selectedIncident) === "SECONDARY");
 
-                    <div className="mt-4 p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-500">
-                      <strong>Trigger rule:</strong>{" "}
-                      {playbooks.find((p) => String(p.id) === String(selectedPlaybookId))?.triggerType}{" "}
-                      = {playbooks.find((p) => String(p.id) === String(selectedPlaybookId))?.triggerValue || "None"}.
-                      <p className="mt-1 text-slate-400">
-                        {playbooks.find((p) => String(p.id) === String(selectedPlaybookId))?.description}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-slate-500 text-sm">
-                    No active automation playbooks found. Please create or activate playbooks first.
-                  </div>
-                )}
+                  if (relevantPlaybooks.length > 0) {
+                    const currentRelation = currentPlaybook ? getPlaybookRelation(currentPlaybook, selectedIncident) : "NONE";
+                    return (
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-400 mb-1.5">Choose Playbook</label>
+                        <select
+                          value={selectedPlaybookId}
+                          onChange={(e) => setSelectedPlaybookId(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-emerald-400 outline-none"
+                        >
+                          {recommendedPlaybooks.length > 0 && (
+                            <optgroup label="Recommended Suggestions">
+                              {recommendedPlaybooks.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {secondaryPlaybooks.length > 0 && (
+                            <optgroup label="Secondary Suggestions">
+                              {secondaryPlaybooks.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {relevantPlaybooks.filter(p => getPlaybookRelation(p, selectedIncident) === "NONE").map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        {currentRelation === "SECONDARY" && (
+                          <div className="mt-2.5 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-xl text-xs flex items-start gap-1.5 font-medium leading-relaxed">
+                            <span>[Warning]</span>
+                            <span><strong>Secondary suggestion selected:</strong> Running this playbook will execute assessment/scans and partially resolve the incident to 70% progress.</span>
+                          </div>
+                        )}
+
+                        <div className="mt-4 p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-500">
+                          <strong>Trigger rule:</strong>{" "}
+                          {currentPlaybook?.triggerType}{" "}
+                          = {currentPlaybook?.triggerValue || "None"}.
+                          <p className="mt-1 text-slate-400">
+                            {currentPlaybook?.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-800 rounded-2xl bg-slate-950/40 p-4">
+                        No relevant containment playbooks found for this incident's severity or threat type.
+                      </div>
+                    );
+                  }
+                })()}
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
                   <button
@@ -545,7 +728,12 @@ function IncidentList() {
                   </button>
                   <button
                     type="button"
-                    disabled={isTriggering || playbooks.length === 0}
+                    disabled={
+                      isTriggering || 
+                      playbooks.length === 0 || 
+                      playbooks.filter((p) => isPlaybookRelevant(p, selectedIncident)).length === 0 || 
+                      !isCurrentPlaybookRelevant
+                    }
                     onClick={handleTriggerPlaybook}
                     className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                   >

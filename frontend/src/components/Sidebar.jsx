@@ -11,6 +11,8 @@ import {
   FaBell,
   FaCircle,
   FaBug,
+  FaClipboardList,
+  FaBookOpen,
 } from "react-icons/fa";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -62,6 +64,16 @@ function Sidebar() {
       title: "Alert List",
       icon: <FaExclamationTriangle />,
       path: "/alert-list",
+    },
+    {
+      title: "Incidents",
+      icon: <FaClipboardList />,
+      path: "/incidents",
+    },
+    {
+      title: "Playbooks",
+      icon: <FaBookOpen />,
+      path: "/playbooks",
     },
     {
       title: "Vulnerabilities",

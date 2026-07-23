@@ -17,7 +17,9 @@ import {
   CheckCircle, 
   User, 
   AlertTriangle, 
-  BookOpen
+  BookOpen,
+  LogIn,
+  UserPlus
 } from "lucide-react";
 
 // Inline Github Icon to avoid lucide-react export mismatches
@@ -283,8 +285,14 @@ function LandingPage() {
           </div>
 
           <div className="sc-nav-buttons">
+            <Link to="/login" className="sc-btn sc-btn-outline sc-nav-auth-btn">
+              <LogIn size={16} /> Login
+            </Link>
+            <Link to="/register" className="sc-btn sc-btn-accent sc-nav-auth-btn">
+              <UserPlus size={16} /> Register
+            </Link>
             <button onClick={handleLaunchDashboard} className="sc-btn sc-btn-primary">
-              Launch Dashboard
+              Dashboard
             </button>
             <a 
               href="https://github.com" 
@@ -316,7 +324,13 @@ function LandingPage() {
           <a href="#security" onClick={(e) => { e.preventDefault(); scrollToSection("security"); }} className="sc-nav-link">Security</a>
         </div>
         <div className="sc-mobile-buttons">
-          <button onClick={handleLaunchDashboard} className="sc-btn sc-btn-primary" style={{ width: "100%" }}>
+          <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="sc-btn sc-btn-outline" style={{ width: "100%" }}>
+            <LogIn size={16} /> Login
+          </Link>
+          <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="sc-btn sc-btn-accent" style={{ width: "100%" }}>
+            <UserPlus size={16} /> Register
+          </Link>
+          <button onClick={() => { setMobileMenuOpen(false); handleLaunchDashboard(); }} className="sc-btn sc-btn-primary" style={{ width: "100%" }}>
             Launch Dashboard
           </button>
           <a 

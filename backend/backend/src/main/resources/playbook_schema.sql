@@ -39,7 +39,13 @@ CREATE TABLE IF NOT EXISTS playbook_steps (
         'DISABLE_USER', 
         'SCAN_VULNERABILITY', 
         'SEND_NOTIFICATION', 
-        'CREATE_INCIDENT'
+        'CREATE_INCIDENT',
+        'VALIDATE_EMAIL',
+        'CHECK_SENDER_REPUTATION',
+        'SCAN_URLS',
+        'SCAN_ATTACHMENTS',
+        'CALCULATE_RISK_SCORE',
+        'DECISION_CONTAINMENT'
     )),
     parameters_json TEXT, -- JSON arguments for step actions
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -53,6 +59,7 @@ CREATE TABLE IF NOT EXISTS playbook_executions (
     id BIGSERIAL PRIMARY KEY,
     playbook_id BIGINT NOT NULL,
     incident_id BIGINT,
+    alert_id BIGINT,
     status VARCHAR(50) NOT NULL CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED')),
     current_step_index INT NOT NULL DEFAULT 0,
     progress INT NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
@@ -62,6 +69,7 @@ CREATE TABLE IF NOT EXISTS playbook_executions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_playbook_executions_playbook FOREIGN KEY (playbook_id) REFERENCES playbooks(id) ON DELETE CASCADE,
     CONSTRAINT fk_playbook_executions_incident FOREIGN KEY (incident_id) REFERENCES incidents(id) ON DELETE SET NULL,
+    CONSTRAINT fk_playbook_executions_alert FOREIGN KEY (alert_id) REFERENCES alerts(id) ON DELETE SET NULL,
     CONSTRAINT fk_playbook_executions_triggered_by FOREIGN KEY (triggered_by_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
@@ -110,4 +118,5 @@ CREATE TABLE IF NOT EXISTS playbook_notifications (
 CREATE INDEX IF NOT EXISTS idx_playbook_steps_playbook_id ON playbook_steps(playbook_id);
 CREATE INDEX IF NOT EXISTS idx_playbook_executions_playbook_id ON playbook_executions(playbook_id);
 CREATE INDEX IF NOT EXISTS idx_playbook_executions_incident_id ON playbook_executions(incident_id);
+CREATE INDEX IF NOT EXISTS idx_playbook_executions_alert_id ON playbook_executions(alert_id);
 CREATE INDEX IF NOT EXISTS idx_playbook_execution_logs_execution_id ON playbook_execution_logs(execution_id);

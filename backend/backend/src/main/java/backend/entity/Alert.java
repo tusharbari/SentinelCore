@@ -28,6 +28,30 @@ public class Alert {
     @Column(name = "last_occurred")
     private LocalDateTime lastOccurred;
 
+    @Column(name = "email_sender")
+    private String emailSender;
+
+    @Column(name = "email_recipient")
+    private String emailRecipient;
+
+    @Column(name = "email_subject")
+    private String emailSubject;
+
+    @Column(name = "email_body", columnDefinition = "TEXT")
+    private String emailBody;
+
+    @Column(name = "email_urls", columnDefinition = "TEXT")
+    private String emailUrls;
+
+    @Column(name = "email_attachments", columnDefinition = "TEXT")
+    private String emailAttachments;
+
+    @Column(name = "risk_score")
+    private Integer riskScore;
+
+    @Column(name = "verdict")
+    private String verdict;
+
     public Alert() {
     }
 
@@ -109,5 +133,69 @@ public class Alert {
 
     public void setLastOccurred(LocalDateTime lastOccurred) {
         this.lastOccurred = lastOccurred;
+    }
+
+    public String getEmailSender() {
+        return emailSender;
+    }
+
+    public void setEmailSender(String emailSender) {
+        this.emailSender = emailSender;
+    }
+
+    public String getEmailRecipient() {
+        return emailRecipient;
+    }
+
+    public void setEmailRecipient(String emailRecipient) {
+        this.emailRecipient = emailRecipient;
+    }
+
+    public String getEmailSubject() {
+        return emailSubject;
+    }
+
+    public void setEmailSubject(String emailSubject) {
+        this.emailSubject = emailSubject;
+    }
+
+    public String getEmailBody() {
+        return emailBody;
+    }
+
+    public void setEmailBody(String emailBody) {
+        this.emailBody = emailBody;
+    }
+
+    public String getEmailUrls() {
+        return emailUrls;
+    }
+
+    public void setEmailUrls(String emailUrls) {
+        this.emailUrls = emailUrls;
+    }
+
+    public String getEmailAttachments() {
+        return emailAttachments;
+    }
+
+    public void setEmailAttachments(String emailAttachments) {
+        this.emailAttachments = emailAttachments;
+    }
+
+    public Integer getRiskScore() {
+        return riskScore;
+    }
+
+    public void setRiskScore(Integer riskScore) {
+        this.riskScore = riskScore;
+    }
+
+    public String getVerdict() {
+        return verdict;
+    }
+
+    public void setVerdict(String verdict) {
+        this.verdict = verdict;
     }
 }

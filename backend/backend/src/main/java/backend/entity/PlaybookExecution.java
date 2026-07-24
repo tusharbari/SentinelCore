@@ -31,6 +31,13 @@ public class PlaybookExecution {
     @Column(name = "incident_id")
     private Long incidentId;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "alert_id", insertable = false, updatable = false)
+    private Alert alert;
+
+    @Column(name = "alert_id")
+    private Long alertId;
+
     @Column(nullable = false, length = 50)
     private String status; // PENDING, RUNNING, SUCCESS, FAILED
 

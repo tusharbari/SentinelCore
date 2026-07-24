@@ -48,6 +48,24 @@ public List<AuditLog> getAllLogs() {
 
     }
 
+    public void createLog(
+            String action,
+            String description,
+            User user) {
+
+        AuditLog log = new AuditLog();
+
+        log.setAction(action);
+
+        log.setDescription(description);
+
+        log.setUser(user);
+
+        log.setTimestamp(LocalDateTime.now());
+
+        auditRepository.save(log);
+    }
+
 
 
     public List<AuditLog> getIncidentLogs(Long incidentId){

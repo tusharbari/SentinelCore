@@ -14,6 +14,9 @@ public class AlertService {
     @Autowired
     private AlertRepository alertRepository;
 
+    @Autowired
+    private PlaybookService playbookService;
+
     // Get All Alerts
     public List<Alert> getAllAlerts() {
         return alertRepository.findAll();
@@ -26,7 +29,21 @@ public class AlertService {
 
     // Add Alert
     public Alert addAlert(Alert alert) {
-        return alertRepository.save(alert);
+        if (alert.getStatus() == null) {
+            alert.setStatus("Open");
+        }
+        Alert savedAlert = alertRepository.save(alert);
+        if (savedAlert.getTitle() != null && 
+            (savedAlert.getTitle().toLowerCase().contains("phishing") || 
+             "Phishing Simulator".equalsIgnoreCase(savedAlert.getSource()) || 
+             "Email Gateway".equalsIgnoreCase(savedAlert.getSource()))) {
+            try {
+                playbookService.triggerPhishingPlaybook(savedAlert);
+            } catch (Exception e) {
+                System.err.println("Failed to trigger phishing playbook automatically: " + e.getMessage());
+            }
+        }
+        return savedAlert;
     }
 
     // Update Alert

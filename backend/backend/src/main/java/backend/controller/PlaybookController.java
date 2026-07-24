@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/playbooks")
@@ -89,5 +90,37 @@ public class PlaybookController {
     @GetMapping("/status/{incidentId}")
     public PlaybookStatusResponse getStatus(@PathVariable Long incidentId) {
         return playbookService.updateStatus(incidentId);
+    }
+
+    // ================= Brute Force Target Simulation Endpoints =================
+
+    @PostMapping("/simulate-brute-force")
+    public PlaybookExecutionDto simulateBruteForce(
+            @RequestParam(required = false) String ip,
+            @RequestParam(required = false) String username) {
+        return playbookService.simulateBruteForceAttack(ip, username);
+    }
+
+    @GetMapping("/target-status")
+    public Map<String, Object> getTargetStatus(
+            @RequestParam(required = false) String ip,
+            @RequestParam(required = false) String username) {
+        return playbookService.getTargetSimulationStatus(ip, username);
+    }
+
+    @PostMapping("/reset-simulation")
+    public Map<String, Object> resetSimulation() {
+        return playbookService.resetSimulation();
+    }
+
+    @PostMapping("/simulate-phishing")
+    public PlaybookExecutionDto simulatePhishing(@RequestBody java.util.Map<String, String> request) {
+        return playbookService.simulatePhishingEmail(
+                request.get("sender"),
+                request.get("recipient"),
+                request.get("subject"),
+                request.get("body"),
+                request.get("attachment")
+        );
     }
 }

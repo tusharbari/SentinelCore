@@ -6,11 +6,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import java.util.Optional;
+
 @Repository
 public interface IOCRepository extends JpaRepository<IOC, Long> {
 
     List<IOC> findByTypeContainingIgnoreCase(String type);
 
     List<IOC> findByRiskLevel(String riskLevel);
+
+    Optional<IOC> findByValue(String value);
 
 }

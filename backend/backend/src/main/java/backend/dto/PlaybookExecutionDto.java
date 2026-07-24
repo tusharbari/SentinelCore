@@ -15,6 +15,7 @@ public class PlaybookExecutionDto {
     private String playbookName;
     private Long incidentId;
     private String incidentTitle;
+    private Long alertId;
     private String status; // PENDING, RUNNING, SUCCESS, FAILED
     private String currentStep;
     private Integer currentStepIndex;

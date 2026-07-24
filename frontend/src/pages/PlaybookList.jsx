@@ -35,9 +35,13 @@ function PlaybookList() {
     ]
   });
 
+  const [releasedIds, setReleasedIds] = useState(new Set());
+
   useEffect(() => {
     fetchPlaybooks();
     fetchExecutions();
+    const interval = setInterval(fetchExecutions, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchPlaybooks = async () => {
@@ -160,7 +164,7 @@ function PlaybookList() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-sky-500/25 transition-all duration-300"
+                className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-sky-500/25 transition-all duration-300 text-sm"
               >
                 <FaPlus className="text-sm" /> Create Playbook
               </motion.button>
@@ -330,14 +334,37 @@ function PlaybookList() {
                           {exec.startedAt ? new Date(exec.startedAt).toLocaleString() : "N/A"}
                         </td>
                         <td className="p-4 text-center">
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate(`/playbooks/executions/${exec.id}`)}
-                            className="bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/20 p-2 rounded-lg transition-all duration-300 outline-none"
-                          >
-                            <FaEye className="text-xs" />
-                          </motion.button>
+                          <div className="flex items-center justify-center gap-2">
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => navigate(`/playbooks/executions/${exec.id}`)}
+                              className="bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-300 outline-none"
+                              title="View Execution Details & Logs"
+                            >
+                              <FaEye className="text-xs" /> View Logs
+                            </motion.button>
+                            <button
+                              disabled={releasedIds.has(exec.id)}
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  await playbookService.resetSimulation();
+                                  setReleasedIds(prev => new Set(prev).add(exec.id));
+                                } catch (err) {
+                                  console.error("Release error", err);
+                                }
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-300 outline-none ${
+                                releasedIds.has(exec.id)
+                                  ? "bg-slate-800/80 text-slate-500 border border-slate-700/60 cursor-not-allowed"
+                                  : "bg-emerald-500/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/20"
+                              }`}
+                              title={releasedIds.has(exec.id) ? "Block already released" : "Release IP & User Account Block"}
+                            >
+                              {releasedIds.has(exec.id) ? "Released" : "Release Block"}
+                            </button>
+                          </div>
                         </td>
                       </motion.tr>
                     ))

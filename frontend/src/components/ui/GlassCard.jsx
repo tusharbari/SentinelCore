@@ -1,11 +1,6 @@
-import { motion } from "framer-motion";
-
 function GlassCard({ children, className = "" }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+    <div
       className={`
         bg-slate-900/80
         backdrop-blur-xl
@@ -13,11 +8,13 @@ function GlassCard({ children, className = "" }) {
         border-slate-800
         rounded-3xl
         shadow-2xl
+        transition-all
+        duration-300
         ${className}
       `}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 

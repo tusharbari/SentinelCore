@@ -519,9 +519,9 @@ function IncidentList() {
                       transition={{ delay: index * 0.03 }}
                       className="text-slate-300 hover:bg-slate-900/40 transition-all duration-300"
                     >
-                      <td className="p-4 text-center text-slate-500 font-mono">#{incident.id}</td>
+                      <td className="p-4 text-center text-slate-500 font-mono cursor-pointer hover:text-sky-400 font-bold transition" onClick={() => navigate(`/incidents/${incident.id}`)}>#{incident.id}</td>
                       <td className="p-4">
-                        <div className="font-semibold text-white flex items-center gap-2">
+                        <div className="font-semibold text-white flex items-center gap-2 cursor-pointer hover:text-sky-400 transition" onClick={() => navigate(`/incidents/${incident.id}`)}>
                           {incident.title}
                           {incident.escalated && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">

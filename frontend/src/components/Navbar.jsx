@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { FaBell, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
+import { FaBell, FaUserCircle, FaSignOutAlt, FaSun, FaMoon } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 import { useNotifications } from "../context/NotificationContext";
@@ -8,6 +8,22 @@ import NotificationDropdown from "./NotificationDropdown";
 function Navbar() {
 
     const navigate = useNavigate();
+
+    const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+
+    useEffect(() => {
+        if (theme === "light") {
+            document.documentElement.classList.add("light");
+            localStorage.setItem("theme", "light");
+        } else {
+            document.documentElement.classList.remove("light");
+            localStorage.setItem("theme", "dark");
+        }
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(theme === "dark" ? "light" : "dark");
+    };
 
     const email = localStorage.getItem("email");
     const role = localStorage.getItem("role");
@@ -65,6 +81,15 @@ function Navbar() {
 
             {/* Right Section */}
             <div className="flex items-center gap-6">
+
+                {/* Theme Toggle Button */}
+                <button
+                    onClick={toggleTheme}
+                    className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700/60 text-cyan-400 hover:text-cyan-300 transition duration-200 cursor-pointer flex items-center justify-center shadow"
+                    title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                    {theme === "dark" ? <FaSun className="text-lg" /> : <FaMoon className="text-lg" />}
+                </button>
 
                 {/* Notification Bell */}
                 <div

@@ -14,6 +14,9 @@ import {
   FaClipboardList,
   FaBookOpen,
   FaHistory,
+  FaEnvelopeOpen,
+  FaServer,
+  FaLaptop,
 } from "react-icons/fa";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -98,6 +101,16 @@ function Sidebar() {
       title: "Vulnerabilities",
       icon: <FaBug />,
       path: "/vulnerabilities",
+    },
+    {
+      title: "Asset Dashboard",
+      icon: <FaServer />,
+      path: "/assets/dashboard",
+    },
+    {
+      title: "Asset Inventory",
+      icon: <FaLaptop />,
+      path: "/assets",
     },
     {
       title: "Audit Logs",

@@ -11,3 +11,202 @@
   scrollbar-width: none !important;  /* Firefox */
 }
 
+/* ==========================================================================
+   White-Blue Light Theme Overrides
+   ========================================================================== */
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light main {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-slate-950 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Glass Card and Slate Cards */
+html.light .bg-slate-900,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/50 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  box-shadow: 0 10px 15px -3px rgba(148, 163, 184, 0.08), 0 4px 6px -4px rgba(148, 163, 184, 0.08) !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-700,
+html.light .border-slate-800\/60 {
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+/* Sidebar and Nav Bar */
+html.light aside {
+  background-color: #ffffff !important;
+  border-right-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+html.light aside .bg-slate-900\/50 {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+  border-top-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+html.light aside h1 {
+  color: #0f172a !important;
+}
+
+html.light aside p.text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light aside button {
+  color: #475569 !important;
+}
+
+html.light aside button:hover {
+  background-color: rgba(14, 165, 233, 0.08) !important;
+  color: #0284c7 !important;
+}
+
+html.light aside button.bg-sky-500\/10 {
+  background-color: rgba(14, 165, 233, 0.1) !important;
+  color: #0284c7 !important;
+  border-color: rgba(14, 165, 233, 0.2) !important;
+}
+
+html.light nav {
+  background-color: #ffffff !important;
+  border-bottom-color: rgba(148, 163, 184, 0.25) !important;
+  box-shadow: 0 4px 6px -1px rgba(148, 163, 184, 0.05) !important;
+}
+
+html.light nav h1.text-cyan-400 {
+  color: #0284c7 !important;
+}
+
+html.light nav button {
+  color: #475569 !important;
+}
+
+html.light nav button:hover {
+  color: #0284c7 !important;
+}
+
+/* Inputs, Selects, Buttons */
+html.light input,
+html.light select,
+html.light textarea,
+html.light .bg-slate-800 {
+  background-color: #ffffff !important;
+  border-color: rgba(148, 163, 184, 0.4) !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light input:focus,
+html.light select:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* Buttons */
+html.light button.bg-slate-800,
+html.light button.bg-slate-700 {
+  background-color: #e2e8f0 !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  color: #334155 !important;
+}
+
+html.light button.bg-slate-800:hover,
+html.light button.bg-slate-700:hover {
+  background-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Texts */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .text-cyan-400 {
+  color: #0284c7 !important;
+}
+
+html.light .text-cyan-500 {
+  color: #0284c7 !important;
+}
+
+html.light .text-sky-500 {
+  color: #0284c7 !important;
+}
+
+/* Badges and tags */
+html.light .bg-cyan-500\/10 {
+  background-color: rgba(14, 165, 233, 0.1) !important;
+  color: #0284c7 !important;
+}
+
+html.light .bg-cyan-500\/5 {
+  background-color: rgba(14, 165, 233, 0.05) !important;
+}
+
+/* Modals and Overlays */
+html.light .bg-slate-950\/80 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+html.light .bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+/* Tables */
+html.light thead {
+  background-color: #f1f5f9 !important;
+}
+
+html.light thead th {
+  color: #475569 !important;
+}
+
+html.light tbody tr {
+  border-bottom-color: rgba(148, 163, 184, 0.1) !important;
+}
+
+html.light tbody tr:hover {
+  background-color: rgba(14, 165, 233, 0.03) !important;
+}
+
+html.light tbody td {
+  color: #334155 !important;
+}
+
+/* Recharts and Tooltips */
+html.light .recharts-default-tooltip {
+  background-color: #ffffff !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  color: #0f172a !important;
+}
+
+html.light .recharts-cartesian-grid-horizontal line,
+html.light .recharts-cartesian-grid-vertical line {
+  stroke: rgba(148, 163, 184, 0.1) !important;
+}

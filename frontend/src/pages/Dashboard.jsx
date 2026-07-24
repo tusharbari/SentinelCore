@@ -28,11 +28,7 @@ function Dashboard() {
         <div className="relative z-10 p-8">
 
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <div>
             <div className="flex justify-between items-center">
 
               <div>
@@ -47,19 +43,7 @@ function Dashboard() {
 
               </div>
 
-              <motion.div
-                animate={{
-                  scale: [1, 1.05, 1],
-                  boxShadow: [
-                    "0 0 10px rgba(34,197,94,0.3)",
-                    "0 0 30px rgba(34,197,94,0.7)",
-                    "0 0 10px rgba(34,197,94,0.3)",
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                }}
+              <div
                 className="px-6 py-3 rounded-full
                            bg-emerald-500/20
                            border border-emerald-400/30
@@ -68,10 +52,10 @@ function Dashboard() {
                            font-semibold"
               >
                 🟢 Live Monitoring
-              </motion.div>
+              </div>
 
             </div>
-          </motion.div>
+          </div>
 
           {/* KPI Cards */}
 

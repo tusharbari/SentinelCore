@@ -67,6 +67,24 @@ const playbookService = {
     const response = await api.get(`/playbooks/executions/${executionId}/logs`);
     return response.data;
   },
+
+  // Simulate Brute Force Attack on Target Portal
+  simulateBruteForce: async (ip = "192.168.1.105", username = "admin@acme.com") => {
+    const response = await api.post(`/playbooks/simulate-brute-force?ip=${encodeURIComponent(ip)}&username=${encodeURIComponent(username)}`);
+    return response.data;
+  },
+
+  // Check if target is blocked by SentinelCore Playbook
+  getTargetStatus: async (ip = "192.168.1.105", username = "admin@acme.com") => {
+    const response = await api.get(`/playbooks/target-status?ip=${encodeURIComponent(ip)}&username=${encodeURIComponent(username)}`);
+    return response.data;
+  },
+
+  // Reset simulation state and unblock targets
+  resetSimulation: async () => {
+    const response = await api.post("/playbooks/reset-simulation");
+    return response.data;
+  },
 };
 
 export default playbookService;

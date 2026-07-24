@@ -77,6 +77,18 @@ function PlaybookExecutionDetail() {
     return "text-slate-300";
   };
 
+  const [unblocked, setUnblocked] = useState(false);
+
+  const handleReleaseBlock = async () => {
+    if (unblocked) return;
+    try {
+      await playbookService.resetSimulation();
+      setUnblocked(true);
+    } catch (err) {
+      console.error("Failed to release block", err);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -103,11 +115,25 @@ function PlaybookExecutionDetail() {
                   title={`Run #${execution.id}: ${execution.playbookName}`}
                   subtitle={`Triggered on incident ID: #${execution.incidentId || "N/A"}`}
                 />
-                <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl px-5 py-3 shadow-lg">
-                  {getStatusIcon(execution.status)}
-                  <div>
-                    <div className="text-xs text-slate-500 uppercase font-semibold">Status</div>
-                    <div className="text-sm font-bold text-white tracking-wider">{execution.status}</div>
+                <div className="flex items-center gap-4">
+                  <button
+                    disabled={unblocked}
+                    onClick={handleReleaseBlock}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 ${
+                      unblocked 
+                        ? "bg-slate-800/80 text-slate-500 border border-slate-700/60 cursor-not-allowed" 
+                        : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 cursor-pointer"
+                    }`}
+                  >
+                    {unblocked ? "Released" : "Release Block"}
+                  </button>
+
+                  <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl px-5 py-3 shadow-lg">
+                    {getStatusIcon(execution.status)}
+                    <div>
+                      <div className="text-xs text-slate-500 uppercase font-semibold">Status</div>
+                      <div className="text-sm font-bold text-white tracking-wider">{execution.status}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -211,56 +237,125 @@ function PlaybookExecutionDetail() {
                     <div>
                       <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Response Action Plan</h4>
                       <div className="space-y-4">
-                        {/* We don't have the explicit step configuration structure here, but we can reconstruct it from progress index */}
                         <div className="text-xs text-slate-400 mb-2">
                           Executing sequence order steps:
                         </div>
                         
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                              execution.currentStepIndex >= 1 ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-800 text-slate-400"
-                            }`}>
-                              {execution.currentStepIndex > 1 || execution.status === "SUCCESS" ? "✓" : "1"}
+                        {String(execution.playbookName || "").toLowerCase().includes("phishing") ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 1 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 1 || execution.status === "SUCCESS" ? "✓" : "1"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 1 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Validate Email format and headers
+                              </span>
                             </div>
-                            <span className={`text-xs ${execution.currentStepIndex === 1 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
-                              Analyze Threat Indicators & Logs
-                            </span>
-                          </div>
 
-                          <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                              execution.currentStepIndex >= 2 ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-800 text-slate-400"
-                            }`}>
-                              {execution.currentStepIndex > 2 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 2) ? "✓" : "2"}
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 2 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 2 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 2) ? "✓" : "2"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 2 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Check Sender Reputation (Blacklists)
+                              </span>
                             </div>
-                            <span className={`text-xs ${execution.currentStepIndex === 2 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
-                              Perform Quarantine Isolation Action
-                            </span>
-                          </div>
 
-                          <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                              execution.currentStepIndex >= 3 ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-800 text-slate-400"
-                            }`}>
-                              {execution.currentStepIndex > 3 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 3) ? "✓" : "3"}
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 3 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 3 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 3) ? "✓" : "3"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 3 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Scan embedded URLs
+                              </span>
                             </div>
-                            <span className={`text-xs ${execution.currentStepIndex === 3 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
-                              Notify Administrators / SOC Teams
-                            </span>
-                          </div>
 
-                          <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                              execution.currentStepIndex >= 4 || execution.status === "SUCCESS" ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-800 text-slate-400"
-                            }`}>
-                              {execution.status === "SUCCESS" ? "✓" : "4"}
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 4 ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 4 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 4) ? "✓" : "4"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 4 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Scan attachments (Simulation)
+                              </span>
                             </div>
-                            <span className={`text-xs ${execution.currentStepIndex === 4 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
-                              Generate Forensic Audit Logs
-                            </span>
+
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 5 ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 5 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 5) ? "✓" : "5"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 5 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Calculate Risk Score
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 6 || execution.status === "SUCCESS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.status === "SUCCESS" ? "✓" : "6"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 6 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Enforce Playbook Decision Rules
+                              </span>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 1 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 1 || execution.status === "SUCCESS" ? "✓" : "1"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 1 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Analyze Threat Indicators & Logs
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 2 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 2 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 2) ? "✓" : "2"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 2 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Perform Quarantine Isolation Action
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 3 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.currentStepIndex > 3 || (execution.status === "SUCCESS" && execution.currentStepIndex >= 3) ? "✓" : "3"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 3 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Notify Administrators / SOC Teams
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                execution.currentStepIndex >= 4 || execution.status === "SUCCESS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {execution.status === "SUCCESS" ? "✓" : "4"}
+                              </div>
+                              <span className={`text-xs ${execution.currentStepIndex === 4 && execution.status === "RUNNING" ? "text-sky-400 font-bold" : "text-slate-300"}`}>
+                                Generate Forensic Audit Logs
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 

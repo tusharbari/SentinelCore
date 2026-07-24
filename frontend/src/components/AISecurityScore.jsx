@@ -10,9 +10,7 @@ function AISecurityScore() {
   const score = 92;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl"
     >
 
@@ -36,14 +34,7 @@ function AISecurityScore() {
 
       <div className="mt-8 flex justify-center">
 
-        <motion.div
-          animate={{
-            scale: [1, 1.05, 1],
-          }}
-          transition={{
-            repeat: Infinity,
-            duration: 3,
-          }}
+        <div
           className="w-44 h-44 rounded-full
                      border-[12px]
                      border-cyan-400
@@ -60,7 +51,7 @@ function AISecurityScore() {
             /100
           </span>
 
-        </motion.div>
+        </div>
 
       </div>
 
@@ -83,7 +74,7 @@ function AISecurityScore() {
 
       </div>
 
-    </motion.div>
+    </div>
   );
 }
 

@@ -43,6 +43,9 @@ export const NotificationProvider = ({ children }) => {
         // Load existing notifications
         loadNotifications();
 
+        // Polling every 3 seconds for new playbook/incident notifications
+        const interval = setInterval(loadNotifications, 3000);
+
         // Connect WebSocket
         connectWebSocket((alert) => {
 
@@ -81,7 +84,7 @@ export const NotificationProvider = ({ children }) => {
         });
 
         return () => {
-
+            clearInterval(interval);
             disconnectWebSocket();
 
         };

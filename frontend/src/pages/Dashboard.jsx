@@ -1,3 +1,5 @@
+
+import AIChatWidget from "../components/AIChatWidget";
 import AISecurityScore from "../components/AISecurityScore";
 import SystemHealth from "../components/SystemHealth";
 import LiveActivity from "../components/LiveActivity";
@@ -114,7 +116,7 @@ function Dashboard() {
           </div>
 
         </div>
-
+      <AIChatWidget />
       </main>
     </>
   );

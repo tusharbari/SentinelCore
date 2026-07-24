@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/sentinelcore
     username: postgres
-    password: Postgres@123
+    password: postgres
 
   jpa:
     hibernate:

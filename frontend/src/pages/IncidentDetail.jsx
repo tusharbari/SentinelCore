@@ -279,6 +279,20 @@ function IncidentDetail() {
                       </div>
                     </div>
 
+                    {incident.assetId && (
+                      <div>
+                        <div className="text-slate-500 font-bold uppercase tracking-wider mb-1">Associated Asset</div>
+                        <div className="flex items-center gap-1.5 font-semibold">
+                          <span
+                            onClick={() => navigate(`/assets/detail/${incident.assetId}`)}
+                            className="cursor-pointer text-cyan-400 hover:text-cyan-300 underline font-bold"
+                          >
+                            {incident.assetName || "View Asset"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     <div>
                       <div className="text-slate-500 font-bold uppercase tracking-wider mb-1">SLA Target</div>
                       <SlaTimer deadline={incident.slaDeadline} status={incident.status} />

@@ -75,4 +75,19 @@ public List<AuditLog> getAllLogs() {
 
     }
 
+    public List<AuditLog> getAssetLogs(Long assetId) {
+        return auditRepository.findByAssetId(assetId);
+    }
+
+    public void createAssetLog(String action, String description, Asset asset, String oldValue, String newValue) {
+        AuditLog log = new AuditLog();
+        log.setAction(action);
+        log.setDescription(description);
+        log.setAsset(asset);
+        log.setOldValue(oldValue);
+        log.setNewValue(newValue);
+        log.setTimestamp(LocalDateTime.now());
+        auditRepository.save(log);
+    }
+
 }

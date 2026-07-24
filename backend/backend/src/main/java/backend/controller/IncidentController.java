@@ -31,6 +31,12 @@ public class IncidentController {
         return incidentService.getIncidentById(id);
     }
 
+    // Get Incidents by Asset ID
+    @GetMapping("/asset/{assetId}")
+    public List<IncidentDto> getIncidentsByAsset(@PathVariable Long assetId) {
+        return incidentService.getIncidentsByAsset(assetId);
+    }
+
     // Create Incident
     @PostMapping
     public IncidentDto createIncident(@Valid @RequestBody IncidentDto dto) {

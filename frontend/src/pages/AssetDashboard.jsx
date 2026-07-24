@@ -34,8 +34,8 @@ function AssetDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchStats = async (initial = false) => {
+    if (initial) setLoading(true);
     setError("");
     try {
       const data = await assetService.getDashboardStats();
@@ -44,12 +44,16 @@ function AssetDashboard() {
       console.error(err);
       setError("Failed to fetch dashboard statistics.");
     } finally {
-      setLoading(false);
+      if (initial) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStats();
+    fetchStats(true);
+    const interval = setInterval(() => {
+      fetchStats(false);
+    }, 30000); // Refresh automatically every 30 seconds
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -94,23 +98,24 @@ function AssetDashboard() {
     LOW: "#22c55e",      // green-500
   };
 
-  // Color mappings for patch status
-  const PATCH_COLORS = {
-    UPDATED: "#22c55e",
-    OUTDATED: "#f97316",
-    UNKNOWN: "#64748b",
-  };
+  const CHART_COLORS = ["#06b6d4", "#3b82f6", "#a855f7", "#ec4899", "#f43f5e", "#10b981", "#f59e0b"];
 
-  const criticalityChartData = stats.riskDistribution.map(item => ({
+  const osChartData = (stats.osDistribution || []).map((item, idx) => ({
     name: item.name,
     value: item.value,
-    color: CRITICALITY_COLORS[item.name] || "#3b82f6",
+    color: CHART_COLORS[idx % CHART_COLORS.length]
   })).filter(item => item.value > 0);
 
-  const patchChartData = stats.patchStatusDistribution.map(item => ({
+  const deviceChartData = (stats.deviceTypeDistribution || []).map((item, idx) => ({
     name: item.name,
     value: item.value,
-    color: PATCH_COLORS[item.name] || "#3b82f6",
+    color: CHART_COLORS[(idx + 2) % CHART_COLORS.length]
+  })).filter(item => item.value > 0);
+
+  const departmentChartData = (stats.departmentDistribution || []).map((item, idx) => ({
+    name: item.name,
+    value: item.value,
+    color: CHART_COLORS[(idx + 4) % CHART_COLORS.length]
   })).filter(item => item.value > 0);
 
   const getRiskColor = (score) => {
@@ -201,18 +206,18 @@ function AssetDashboard() {
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            {/* Criticality Pie Chart */}
+            {/* Assets by OS Pie Chart */}
             <GlassCard className="p-6 flex flex-col justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Asset Criticality</h3>
-                <p className="text-xs text-slate-400 mb-4">Distribution by business priority level</p>
+                <h3 className="text-lg font-bold text-white mb-1">Assets by OS</h3>
+                <p className="text-xs text-slate-400 mb-4">Distribution by operating system</p>
               </div>
               <div className="h-64 flex items-center justify-center">
-                {criticalityChartData.length > 0 ? (
+                {osChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={criticalityChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={4} dataKey="value">
-                        {criticalityChartData.map((entry, index) => (
+                      <Pie data={osChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={4} dataKey="value">
+                        {osChartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -221,7 +226,7 @@ function AssetDashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-slate-500 text-sm">No criticality data available</p>
+                  <p className="text-slate-500 text-sm">No OS data available</p>
                 )}
               </div>
             </GlassCard>
@@ -229,18 +234,22 @@ function AssetDashboard() {
             {/* Device Type Bar Chart */}
             <GlassCard className="p-6 flex flex-col justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Device Types</h3>
+                <h3 className="text-lg font-bold text-white mb-1">Assets by Device Type</h3>
                 <p className="text-xs text-slate-400 mb-4">Counts of network host categories</p>
               </div>
               <div className="h-64">
-                {stats.deviceTypeDistribution.length > 0 ? (
+                {deviceChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stats.deviceTypeDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <BarChart data={deviceChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                       <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: "11px" }} />
                       <YAxis stroke="#64748b" style={{ fontSize: "11px" }} />
                       <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", borderRadius: "8px", color: "#fff" }} />
-                      <Bar dataKey="value" fill="#06b6d4" radius={[6, 6, 0, 0]} name="Count" />
+                      <Bar dataKey="value" fill="#06b6d4" radius={[6, 6, 0, 0]} name="Count">
+                        {deviceChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -251,27 +260,31 @@ function AssetDashboard() {
               </div>
             </GlassCard>
 
-            {/* Patch Status Chart */}
+            {/* Assets by Department Bar Chart */}
             <GlassCard className="p-6 flex flex-col justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Patch Compliance</h3>
-                <p className="text-xs text-slate-400 mb-4">Distribution of device update status</p>
+                <h3 className="text-lg font-bold text-white mb-1">Assets by Department</h3>
+                <p className="text-xs text-slate-400 mb-4">Device allocation by business unit</p>
               </div>
-              <div className="h-64 flex items-center justify-center">
-                {patchChartData.length > 0 ? (
+              <div className="h-64">
+                {departmentChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={patchChartData} cx="50%" cy="50%" outerRadius={85} paddingAngle={2} dataKey="value">
-                        {patchChartData.map((entry, index) => (
+                    <BarChart data={departmentChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: "11px" }} />
+                      <YAxis stroke="#64748b" style={{ fontSize: "11px" }} />
+                      <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", borderRadius: "8px", color: "#fff" }} />
+                      <Bar dataKey="value" fill="#a855f7" radius={[6, 6, 0, 0]} name="Count">
+                        {departmentChartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", borderRadius: "8px", color: "#fff" }} />
-                      <Legend iconType="circle" wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }} />
-                    </PieChart>
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-slate-500 text-sm">No patch compliance data available</p>
+                  <div className="h-full flex items-center justify-center">
+                    <p className="text-slate-500 text-sm">No department data available</p>
+                  </div>
                 )}
               </div>
             </GlassCard>

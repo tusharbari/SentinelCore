@@ -43,6 +43,10 @@ public class Incident {
     @JoinColumn(name = "assigned_to_id")
     private User assignedTo;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "asset_id")
+    private Asset asset;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

@@ -30,4 +30,9 @@ public class AuditLogController {
         return service.getIncidentLogs(id);
     }
 
+    @GetMapping("/asset/{id}")
+    public List<AuditLog> getAssetLogs(@PathVariable Long id) {
+        return service.getAssetLogs(id);
+    }
+
 }

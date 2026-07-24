@@ -286,7 +286,16 @@ function AlertList() {
                                             </td>
 
                                             <td className="p-4 font-semibold text-white">
-                                                {alert.title}
+                                                {alert.asset ? (
+                                                    <span
+                                                        onClick={() => navigate(`/assets/detail/${alert.asset.id}`)}
+                                                        className="cursor-pointer text-cyan-400 hover:text-cyan-300 hover:underline"
+                                                    >
+                                                        {alert.title}
+                                                    </span>
+                                                ) : (
+                                                    alert.title
+                                                )}
                                             </td>
 
                                             <td className="p-4">

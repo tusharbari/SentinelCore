@@ -71,10 +71,32 @@ public class Asset {
     private LocalDateTime lastSeen;
 
     @Column(nullable = false)
-    private String status; // ONLINE, OFFLINE
+    private String status; // ONLINE, OFFLINE, MAINTENANCE
 
     @Column(name = "risk_score")
     private Integer riskScore;
+
+    @Column(name = "cpu_usage")
+    private Double cpuUsage;
+
+    @Column(name = "ram_usage")
+    private Double ramUsage;
+
+    @Column(name = "disk_usage")
+    private Double diskUsage;
+
+    @Column(name = "total_storage")
+    private Double totalStorage;
+
+    @Column(name = "free_storage")
+    private Double freeStorage;
+
+    @Column(name = "total_ram")
+    private Double totalRam;
+
+    @Column(name = "agent_installed")
+    @Builder.Default
+    private Boolean agentInstalled = false;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

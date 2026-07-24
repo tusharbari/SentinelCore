@@ -66,6 +66,24 @@ const assetService = {
     });
     return response.data;
   },
+
+  // Get alerts by asset ID
+  getAlertsByAsset: async (assetId) => {
+    const response = await api.get(`/alerts/asset/${assetId}`);
+    return response.data;
+  },
+
+  // Get incidents by asset ID
+  getIncidentsByAsset: async (assetId) => {
+    const response = await api.get(`/incidents/asset/${assetId}`);
+    return response.data;
+  },
+
+  // Get audit logs by asset ID
+  getAuditLogsByAsset: async (assetId) => {
+    const response = await api.get(`/audit/asset/${assetId}`);
+    return response.data;
+  },
 };
 
 export default assetService;

@@ -294,15 +294,15 @@ function AssetList() {
             <table className="w-full text-left">
               <thead className="bg-slate-950 text-slate-300 text-xs font-semibold uppercase tracking-wider">
                 <tr>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("id")}>ID {getSortIcon("id")}</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("assetId")}>Asset ID {getSortIcon("assetId")}</th>
+                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("assetName")}>Asset Name {getSortIcon("assetName")}</th>
                   <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("hostname")}>Hostname {getSortIcon("hostname")}</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("ipAddress")}>IP Address {getSortIcon("ipAddress")}</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("deviceType")}>Type {getSortIcon("deviceType")}</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("owner")}>Owner {getSortIcon("owner")}</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("environment")}>Environment {getSortIcon("environment")}</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("criticality")}>Criticality {getSortIcon("criticality")}</th>
+                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("ipAddress")}>IP {getSortIcon("ipAddress")}</th>
+                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("operatingSystem")}>OS {getSortIcon("operatingSystem")}</th>
+                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("cpuUsage")}>CPU % {getSortIcon("cpuUsage")}</th>
+                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("ramUsage")}>RAM % {getSortIcon("ramUsage")}</th>
+                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("diskUsage")}>Disk % {getSortIcon("diskUsage")}</th>
                   <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("status")}>Status {getSortIcon("status")}</th>
+                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort("lastSeen")}>Last Seen {getSortIcon("lastSeen")}</th>
                   <th className="p-4 text-center">Actions</th>
                 </tr>
               </thead>
@@ -310,29 +310,33 @@ function AssetList() {
                 {assets.length > 0 ? (
                   assets.map((asset, index) => (
                     <motion.tr key={asset.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }} className="hover:bg-slate-800/40 transition-colors duration-200">
-                      <td className="p-4 font-mono text-xs">{asset.id}</td>
-                      <td className="p-4 text-cyan-400 font-bold">{asset.assetId}</td>
-                      <td className="p-4 font-semibold text-white">{asset.hostname}</td>
-                      <td className="p-4 font-mono text-xs">{asset.ipAddress}</td>
-                      <td className="p-4">{asset.deviceType}</td>
-                      <td className="p-4">{asset.owner}</td>
-                      <td className="p-4 text-xs font-semibold">{asset.environment}</td>
                       <td className="p-4">
-                        <span className={`px-2 py-0.5 rounded text-xs font-extrabold ${
-                          asset.criticality === "CRITICAL" ? "bg-red-500/10 text-red-400 border border-red-500/20" :
-                          asset.criticality === "HIGH" ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" :
-                          asset.criticality === "MEDIUM" ? "bg-yellow-500/10 text-yellow-300 border border-yellow-500/20" :
-                          "bg-green-500/10 text-green-400 border border-green-500/20"
-                        }`}>
-                          {asset.criticality}
-                        </span>
+                        <div className="font-semibold text-white">{asset.assetName}</div>
+                        <div className="text-[10px] text-slate-500 font-mono">{asset.assetId}</div>
+                      </td>
+                      <td className="p-4 font-semibold text-slate-300">{asset.hostname}</td>
+                      <td className="p-4 font-mono text-xs text-slate-300">{asset.ipAddress}</td>
+                      <td className="p-4 text-slate-300">{asset.operatingSystem} {asset.osVersion}</td>
+                      <td className="p-4 text-slate-300 font-mono text-xs">
+                        {asset.cpuUsage !== null && asset.cpuUsage !== undefined ? `${asset.cpuUsage.toFixed(1)}%` : "—"}
+                      </td>
+                      <td className="p-4 text-slate-300 font-mono text-xs">
+                        {asset.ramUsage !== null && asset.ramUsage !== undefined ? `${asset.ramUsage.toFixed(1)}%` : "—"}
+                      </td>
+                      <td className="p-4 text-slate-300 font-mono text-xs">
+                        {asset.diskUsage !== null && asset.diskUsage !== undefined ? `${asset.diskUsage.toFixed(1)}%` : "—"}
                       </td>
                       <td className="p-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          asset.status === "ONLINE" ? "bg-green-500/10 text-green-400" : "bg-slate-500/10 text-slate-400"
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          asset.status === "ONLINE" ? "bg-green-500/10 text-green-400" :
+                          asset.status === "OFFLINE" ? "bg-red-500/10 text-red-400" :
+                          "bg-yellow-500/10 text-yellow-300"
                         }`}>
-                          {asset.status}
+                          ● {asset.status}
                         </span>
+                      </td>
+                      <td className="p-4 text-xs text-slate-400 font-mono">
+                        {asset.lastSeen ? new Date(asset.lastSeen).toLocaleString() : "Never"}
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-2">

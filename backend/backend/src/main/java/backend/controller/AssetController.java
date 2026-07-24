@@ -1,6 +1,7 @@
 package backend.controller;
 
 import backend.dto.AssetDto;
+import backend.dto.AssetHeartbeatDto;
 import backend.service.AssetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,17 @@ import java.util.Map;
 public class AssetController {
 
     private final AssetService assetService;
+
+    @PostMapping("/register")
+    public AssetDto registerAsset(@RequestBody AssetDto dto) {
+        return assetService.registerAsset(dto);
+    }
+
+    @PostMapping("/heartbeat")
+    public ResponseEntity<?> processHeartbeat(@RequestBody AssetHeartbeatDto dto) {
+        assetService.processHeartbeat(dto);
+        return ResponseEntity.ok().build();
+    }
 
     // Get paginated, sorted, and filtered assets
     @GetMapping

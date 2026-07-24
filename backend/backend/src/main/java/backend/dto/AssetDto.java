@@ -74,12 +74,20 @@ public class AssetDto {
     private LocalDateTime lastSeen;
 
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "ONLINE|OFFLINE", message = "Status must be ONLINE or OFFLINE")
+    @Pattern(regexp = "ONLINE|OFFLINE|MAINTENANCE", message = "Status must be ONLINE, OFFLINE, or MAINTENANCE")
     private String status;
 
     @Min(value = 0, message = "Risk score must be at least 0")
     @Max(value = 100, message = "Risk score cannot exceed 100")
     private Integer riskScore;
+
+    private Double cpuUsage;
+    private Double ramUsage;
+    private Double diskUsage;
+    private Double totalStorage;
+    private Double freeStorage;
+    private Double totalRam;
+    private Boolean agentInstalled;
 
     private LocalDateTime createdAt;
 

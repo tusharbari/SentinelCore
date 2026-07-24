@@ -46,6 +46,8 @@ public class SecurityConfig {
                         // Public APIs
                         // ===========================
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/assets/register").permitAll()
+                        .requestMatchers("/api/assets/heartbeat").permitAll()
                         .requestMatchers("/api/playbooks/simulate-brute-force").permitAll()
                         .requestMatchers("/api/playbooks/target-status").permitAll()
                         .requestMatchers("/api/playbooks/reset-simulation").permitAll()

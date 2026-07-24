@@ -10,5 +10,6 @@ public interface AuditLogRepository
 
 
     List<AuditLog> findByIncidentId(Long incidentId);
+    List<AuditLog> findByAssetId(Long assetId);
 
 }

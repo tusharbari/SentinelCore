@@ -1,10 +1,15 @@
 package backend.repository;
+import java.util.List;
 import java.util.Optional;
 import backend.entity.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AlertRepository extends JpaRepository<Alert, Long> {
     Optional<Alert> findByTitleAndStatus(String title, String status);
+
+    Optional<Alert> findByTitleAndStatusAndAssetId(String title, String status, Long assetId);
+
+    List<Alert> findByAssetId(Long assetId);
 
     long countByStatus(String status);
 

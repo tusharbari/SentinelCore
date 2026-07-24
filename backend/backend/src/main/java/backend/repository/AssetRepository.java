@@ -14,6 +14,8 @@ public interface AssetRepository extends JpaRepository<Asset, Long>, JpaSpecific
 
     Optional<Asset> findByIpAddress(String ipAddress);
 
+    Optional<Asset> findByMacAddress(String macAddress);
+
     Optional<Asset> findFirstByOrderByIdDesc();
 
     long countByCriticality(String criticality);

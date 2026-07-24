@@ -79,4 +79,8 @@ public class AlertService {
 
         return alertRepository.save(alert);
     }
+
+    public List<Alert> getAlertsByAsset(Long assetId) {
+        return alertRepository.findByAssetId(assetId);
+    }
 }

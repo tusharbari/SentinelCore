@@ -1,11 +1,14 @@
 package backend.service;
 
 import backend.dto.AssetDto;
+import backend.dto.AssetHeartbeatDto;
+import backend.entity.Alert;
 import backend.entity.Asset;
 import backend.entity.User;
 import backend.exception.DuplicateResourceException;
 import backend.exception.ResourceNotFoundException;
 import backend.mapper.AssetMapper;
+import backend.repository.AlertRepository;
 import backend.repository.AssetRepository;
 import backend.repository.UserRepository;
 import backend.specification.AssetSpecification;
@@ -37,6 +40,8 @@ public class AssetService {
     private final UserRepository userRepository;
     private final AssetMapper assetMapper;
     private final AuditLogService auditLogService;
+    private final AlertRepository alertRepository;
+    private final AlertNotificationService alertNotificationService;
 
     // Get paginated and filtered assets
     public Page<AssetDto> getAssets(String hostname, String owner, String status,
@@ -201,6 +206,24 @@ public class AssetService {
             patchDist.add(Map.of("name", ps, "value", assetRepository.countByPatchStatus(ps)));
         }
         stats.put("patchStatusDistribution", patchDist);
+
+        // OS Distribution
+        Map<String, Long> osCounts = assetRepository.findAll().stream()
+                .filter(a -> a.getOperatingSystem() != null)
+                .collect(Collectors.groupingBy(Asset::getOperatingSystem, Collectors.counting()));
+        List<Map<String, Object>> osDist = osCounts.entrySet().stream()
+                .map(e -> Map.of("name", e.getKey(), "value", (Object) e.getValue()))
+                .collect(Collectors.toList());
+        stats.put("osDistribution", osDist);
+
+        // Department Distribution
+        Map<String, Long> deptCounts = assetRepository.findAll().stream()
+                .filter(a -> a.getDepartment() != null)
+                .collect(Collectors.groupingBy(Asset::getDepartment, Collectors.counting()));
+        List<Map<String, Object>> deptDist = deptCounts.entrySet().stream()
+                .map(e -> Map.of("name", e.getKey(), "value", (Object) e.getValue()))
+                .collect(Collectors.toList());
+        stats.put("departmentDistribution", deptDist);
 
         // Latest Assets
         List<AssetDto> latest = assetRepository.findAll(
@@ -432,5 +455,173 @@ public class AssetService {
         }
         String email = authentication.getName();
         return userRepository.findByEmail(email).orElse(null);
+    }
+
+    @Transactional
+    public AssetDto registerAsset(AssetDto dto) {
+        Optional<Asset> existingOpt = Optional.empty();
+        if (dto.getMacAddress() != null && !dto.getMacAddress().trim().isEmpty()) {
+            existingOpt = assetRepository.findByMacAddress(dto.getMacAddress());
+        }
+        if (existingOpt.isEmpty() && dto.getHostname() != null && !dto.getHostname().trim().isEmpty()) {
+            existingOpt = assetRepository.findByHostname(dto.getHostname());
+        }
+
+        Asset asset;
+        boolean isNew = false;
+        String oldValue = "";
+        String newValue = "";
+
+        if (existingOpt.isPresent()) {
+            asset = existingOpt.get();
+            oldValue = String.format("IP: %s, OS: %s, OS Version: %s, RAM: %s, Storage: %s",
+                    asset.getIpAddress(), asset.getOperatingSystem(), asset.getOsVersion(), asset.getTotalRam(), asset.getTotalStorage());
+        } else {
+            asset = new Asset();
+            asset.setAssetId(generateAssetId());
+            asset.setHostname(dto.getHostname());
+            asset.setOwner(dto.getOwner() != null ? dto.getOwner() : "Agent");
+            asset.setAssetName(dto.getAssetName() != null ? dto.getAssetName() : "Asset-" + dto.getHostname());
+            asset.setDepartment(dto.getDepartment() != null ? dto.getDepartment() : "IT");
+            asset.setLocation(dto.getLocation() != null ? dto.getLocation() : "Remote");
+            asset.setEnvironment(dto.getEnvironment() != null ? dto.getEnvironment() : "Production");
+            asset.setCriticality(dto.getCriticality() != null ? dto.getCriticality() : "MEDIUM");
+            asset.setPatchStatus(dto.getPatchStatus() != null ? dto.getPatchStatus() : "UNKNOWN");
+            asset.setRiskScore(dto.getRiskScore() != null ? dto.getRiskScore() : 0);
+            isNew = true;
+        }
+
+        if (dto.getIpAddress() != null) asset.setIpAddress(dto.getIpAddress());
+        if (dto.getMacAddress() != null) asset.setMacAddress(dto.getMacAddress());
+        if (dto.getOperatingSystem() != null) asset.setOperatingSystem(dto.getOperatingSystem());
+        if (dto.getOsVersion() != null) asset.setOsVersion(dto.getOsVersion());
+        if (dto.getDeviceType() != null) asset.setDeviceType(dto.getDeviceType());
+        if (dto.getTotalRam() != null) asset.setTotalRam(dto.getTotalRam());
+        if (dto.getTotalStorage() != null) asset.setTotalStorage(dto.getTotalStorage());
+        if (dto.getFreeStorage() != null) asset.setFreeStorage(dto.getFreeStorage());
+
+        asset.setAgentInstalled(true);
+        asset.setStatus("ONLINE");
+        asset.setLastSeen(LocalDateTime.now());
+
+        Asset saved = assetRepository.save(asset);
+
+        newValue = String.format("IP: %s, OS: %s, OS Version: %s, RAM: %s, Storage: %s",
+                saved.getIpAddress(), saved.getOperatingSystem(), saved.getOsVersion(), saved.getTotalRam(), saved.getTotalStorage());
+
+        auditLogService.createAssetLog(
+                isNew ? "AGENT_REGISTER" : "AGENT_CHECKIN",
+                isNew ? "Asset registered by monitoring agent" : "Asset system specs updated by monitoring agent",
+                saved,
+                isNew ? null : oldValue,
+                newValue
+        );
+
+        return assetMapper.toDto(saved);
+    }
+
+    @Transactional
+    public void processHeartbeat(AssetHeartbeatDto dto) {
+        Optional<Asset> existingOpt = Optional.empty();
+        if (dto.getMacAddress() != null && !dto.getMacAddress().trim().isEmpty()) {
+            existingOpt = assetRepository.findByMacAddress(dto.getMacAddress());
+        }
+        if (existingOpt.isEmpty() && dto.getHostname() != null && !dto.getHostname().trim().isEmpty()) {
+            existingOpt = assetRepository.findByHostname(dto.getHostname());
+        }
+
+        Asset asset = existingOpt.orElseThrow(() -> new ResourceNotFoundException("Asset not found for heartbeat: " + dto.getHostname()));
+
+        String oldValue = String.format("Status: %s, CPU: %s%%, RAM: %s%%, Disk: %s%%",
+                asset.getStatus(), asset.getCpuUsage(), asset.getRamUsage(), asset.getDiskUsage());
+
+        asset.setStatus("ONLINE");
+        asset.setCpuUsage(dto.getCpuUsage());
+        asset.setRamUsage(dto.getRamUsage());
+        asset.setDiskUsage(dto.getDiskUsage());
+        asset.setLastSeen(LocalDateTime.now());
+
+        Asset saved = assetRepository.save(asset);
+
+        String newValue = String.format("Status: ONLINE, CPU: %s%%, RAM: %s%%, Disk: %s%%",
+                saved.getCpuUsage(), saved.getRamUsage(), saved.getDiskUsage());
+
+        auditLogService.createAssetLog(
+                "HEARTBEAT",
+                "Asset heartbeat and telemetry metrics updated",
+                saved,
+                oldValue,
+                newValue
+        );
+
+        if (saved.getCpuUsage() != null && saved.getCpuUsage() > 90.0) {
+            createOrUpdateAssetAlert(
+                    saved,
+                    "High CPU Usage",
+                    "High",
+                    String.format("Asset %s is experiencing high CPU usage: %.1f%%", saved.getHostname(), saved.getCpuUsage())
+            );
+        }
+        if (saved.getRamUsage() != null && saved.getRamUsage() > 95.0) {
+            createOrUpdateAssetAlert(
+                    saved,
+                    "High Memory Usage",
+                    "High",
+                    String.format("Asset %s is experiencing high RAM usage: %.1f%%", saved.getHostname(), saved.getRamUsage())
+            );
+        }
+        if (saved.getDiskUsage() != null && saved.getDiskUsage() > 90.0) {
+            createOrUpdateAssetAlert(
+                    saved,
+                    "Disk Almost Full",
+                    "High",
+                    String.format("Asset %s disk space is almost full: %.1f%% used", saved.getHostname(), saved.getDiskUsage())
+            );
+        }
+    }
+
+    private void createOrUpdateAssetAlert(Asset asset, String title, String severity, String description) {
+        Optional<Alert> existing = alertRepository.findByTitleAndStatusAndAssetId(title, "Open", asset.getId());
+        Alert alert;
+        if (existing.isPresent()) {
+            alert = existing.get();
+            alert.setDescription(description);
+            alert.setOccurrenceCount((alert.getOccurrenceCount() == null ? 0 : alert.getOccurrenceCount()) + 1);
+            alert.setLastOccurred(LocalDateTime.now());
+        } else {
+            alert = new Alert();
+            alert.setTitle(title);
+            alert.setSeverity(severity);
+            alert.setSource("Asset Monitor");
+            alert.setStatus("Open");
+            alert.setDescription(description);
+            alert.setOccurrenceCount(1);
+            alert.setLastOccurred(LocalDateTime.now());
+            alert.setAsset(asset);
+        }
+        Alert saved = alertRepository.save(alert);
+        alertNotificationService.sendNotification(saved);
+    }
+
+    @Transactional
+    public void markAssetOffline(Asset asset) {
+        String oldStatus = asset.getStatus();
+        asset.setStatus("OFFLINE");
+        Asset saved = assetRepository.save(asset);
+
+        auditLogService.createAssetLog(
+                "STATUS_CHANGE",
+                "Asset status marked as OFFLINE due to heartbeat timeout",
+                saved,
+                "Status: " + oldStatus,
+                "Status: OFFLINE"
+        );
+
+        createOrUpdateAssetAlert(
+                saved,
+                "Asset Offline",
+                "Critical",
+                String.format("Asset %s has not sent a heartbeat for over 2 minutes. Status is marked as OFFLINE.", saved.getHostname())
+        );
     }
 }

@@ -30,6 +30,12 @@ public class AlertController {
         return alertService.getAlertById(id);
     }
 
+    // Get Alerts by Asset ID
+    @GetMapping("/asset/{assetId}")
+    public List<Alert> getAlertsByAsset(@PathVariable Long assetId) {
+        return alertService.getAlertsByAsset(assetId);
+    }
+
     // Add Alert
     @PostMapping
     public Alert addAlert(@RequestBody Alert alert) {

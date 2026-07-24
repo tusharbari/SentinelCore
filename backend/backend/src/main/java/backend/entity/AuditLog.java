@@ -33,4 +33,15 @@ public class AuditLog {
     // Prevents infinite loops if Incident also has a reference to AuditLog
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "auditLogs"})
     private Incident incident;
+
+    @Column(name = "old_value", columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column(name = "new_value", columnDefinition = "TEXT")
+    private String newValue;
+
+    @ManyToOne
+    @JoinColumn(name = "asset_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Asset asset;
 }

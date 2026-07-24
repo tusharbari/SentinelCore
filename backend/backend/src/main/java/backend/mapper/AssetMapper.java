@@ -31,6 +31,13 @@ public class AssetMapper {
                 .lastSeen(asset.getLastSeen())
                 .status(asset.getStatus())
                 .riskScore(asset.getRiskScore())
+                .cpuUsage(asset.getCpuUsage())
+                .ramUsage(asset.getRamUsage())
+                .diskUsage(asset.getDiskUsage())
+                .totalStorage(asset.getTotalStorage())
+                .freeStorage(asset.getFreeStorage())
+                .totalRam(asset.getTotalRam())
+                .agentInstalled(asset.getAgentInstalled())
                 .createdAt(asset.getCreatedAt())
                 .updatedAt(asset.getUpdatedAt())
                 .build();
@@ -60,6 +67,13 @@ public class AssetMapper {
                 .lastSeen(dto.getLastSeen())
                 .status(dto.getStatus())
                 .riskScore(dto.getRiskScore())
+                .cpuUsage(dto.getCpuUsage())
+                .ramUsage(dto.getRamUsage())
+                .diskUsage(dto.getDiskUsage())
+                .totalStorage(dto.getTotalStorage())
+                .freeStorage(dto.getFreeStorage())
+                .totalRam(dto.getTotalRam())
+                .agentInstalled(dto.getAgentInstalled())
                 .build();
     }
 }

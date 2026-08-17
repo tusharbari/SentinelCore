@@ -149,7 +149,7 @@ function Register() {
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Jane Doe"
+                                    placeholder="Enter Your Full Name."
                                     className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-slate-650 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 outline-none transition-all duration-300"
                                 />
                             </div>
